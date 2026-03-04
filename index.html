@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Lavanderia - Hit Hotel</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root { --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --dark: #1e293b; --text-main: #334155; --text-light: #64748b; --bg-color: #f1f5f9; --card-bg: #ffffff; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px 10px; }
+        .container { max-width: 900px; margin: auto; }
+        .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 20px; }
+        h1 { color: var(--dark); text-align: center; margin-top: 0; font-size: 24px; font-weight: 700; }
+        p.subtitle { text-align: center; color: var(--text-light); margin-top: -10px; margin-bottom: 20px; font-size: 14px; }
+        .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px 20px; text-align: center; background-color: #f8fafc; transition: 0.3s; }
+        input[type="file"] { display: none; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 300px; margin: 10px auto; color: white;}
+        .btn-primary { background-color: var(--primary); }
+        .btn-success { background-color: var(--success); }
+        .btn-warning { background-color: var(--warning); }
+        .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+        .info-panel { display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-items: center; background-color: #f8fafc; border-left: 4px solid var(--primary); padding: 15px; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
+        .info-panel div { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
+        .info-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
+        .input-header { width: 100%; max-width: 140px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-weight: bold; color: var(--dark); text-align: center; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f8fafc; color: var(--text-light); font-size: 12px; text-transform: uppercase; }
+        td:first-child { text-align: left; font-weight: 600; color: var(--dark); }
+        input[type="number"] { width: 45px; padding: 8px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-weight: bold; color: var(--dark); }
+        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 13px; }
+        .negative { color: var(--danger); background-color: #fef2f2; }
+        .positive { color: var(--success); background-color: #ecfdf5; }
+        .neutral { color: var(--text-light); background-color: #f1f5f9; }
+        .acumulado-col { background-color: #fafafa; border-left: 1px dashed #e2e8f0; }
+        #area-relatorio, #loading { display: none; }
+        #debug-log { font-size: 11px; color: var(--danger); text-align: left; background: #fee2e2; padding: 10px; border-radius: 4px; margin-top: 10px; display: none; word-break: break-all; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card" id="upload-card">
+        <h1>Controle de Enxoval IA - HIT</h1>
+        <p class="subtitle">Faça o upload da foto. A Inteligência Artificial fará a leitura.</p>
+        
+        <div class="upload-area">
+            <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
+            <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
+            <div id="file-name" style="color: var(--text-light); font-size: 14px; margin: 15px 0;">Nenhuma imagem</div>
+            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto com IA</button>
+            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">A IA está processando... Pode levar até 15 segundos.</p>
+            <div id="debug-log"></div>
+        </div>
+    </div>
+
+    <div id="area-relatorio" class="card">
+        <div class="info-panel" id="cabecalho-relatorio">
+            <div>
+                <span class="info-label">Cliente</span>
+                <span class="info-value" style="font-size: 16px; font-weight: bold;">HIT - Hotel</span>
+            </div>
+            <div>
+                <span class="info-label">Data do Romaneio</span>
+                <input type="text" id="data-remessa-input" class="input-header" placeholder="00/00/00">
+            </div>
+            <div>
+                <span class="info-label">Conferente</span>
+                <input type="text" id="nome-conferente" class="input-header" placeholder="Seu Nome">
+            </div>
+        </div>
+
+        <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
+            ⚠️ <strong>Revise a Leitura da IA:</strong> A IA fez o preenchimento. Clique nas caixas e corrija se algum número estiver errado com a foto.
+        </div>
+
+        <div style="overflow-x: auto;">
+            <table id="result-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Foi<br>(Saída)</th>
+                        <th>Voltou<br>(Retorno)</th>
+                        <th>Saldo<br>Hoje</th>
+                        <th class="acumulado-col">Estoque<br>Geral</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <button id="save-btn" class="btn btn-success" style="display: none; max-width: 400px; padding: 16px;" onclick="salvarEstoqueNaNuvem()">☁️ Confirmar e Salvar no Banco</button>
+    <button id="download-btn" class="btn btn-primary" style="display: none; max-width: 400px;" onclick="baixarJPG()">📥 Baixar Relatório (JPG)</button>
+</div>
+
+<script>
+    const GEMINI_API_KEY = "AIzaSyAwQ1pHBryyjE0g4x33hslLnphX9l1xciw";
+
+    const firebaseConfig = {
+        apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
+        authDomain: "lavanderia-hoteis.firebaseapp.com",
+        projectId: "lavanderia-hoteis",
+        storageBucket: "lavanderia-hoteis.firebasestorage.app",
+        messagingSenderId: "813362601139",
+        appId: "1:813362601139:web:2db87ca8501677fe89e4c6"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    let dadosAtuais = [];
+    let estoqueAcumulado = {};
+    let imagemBase64 = "";
+
+    function mostrarErro(mensagem, erroTecnico = "") {
+        const debugBox = document.getElementById('debug-log');
+        debugBox.style.display = 'block';
+        debugBox.innerHTML = `<strong>${mensagem}</strong><br><br>Detalhe Técnico: ${erroTecnico}`;
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('process-btn').style.display = 'block';
+    }
+
+    function previewFile() {
+        const file = document.getElementById('file-upload').files[0];
+        if (file) {
+            document.getElementById('file-name').textContent = "Arquivo: " + file.name + " (Processando tamanho...)";
+            document.getElementById('process-btn').disabled = true;
+            document.getElementById('debug-log').style.display = 'none';
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1000;
+                    const MAX_HEIGHT = 1400;
+                    let width = img.width;
+                    let height = img.height;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                    } else {
+                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                    }
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+
+                    imagemBase64 = canvas.toDataURL('image/jpeg', 0.7).split(',')[1];
+                    document.getElementById('file-name').textContent = "Imagem pronta! Pode analisar.";
+                    document.getElementById('process-btn').disabled = false;
+                }
+                img.src = event.target.result;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
+    async function processarComIA() {
+        if (!imagemBase64) { alert("A imagem ainda não foi carregada."); return; }
+        
+        document.getElementById('process-btn').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('debug-log').style.display = 'none';
+
+        try {
+            const docRef = await db.collection("estoque_hoteis").doc("hit_hotel").get();
+            if (docRef.exists) estoqueAcumulado = docRef.data();
+        } catch (error) {
+            console.warn("Sem acesso ao Firebase ainda.");
+        }
+
+        try {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [
+                            { text: "Você é um assistente de hotel. Extraia as quantidades da coluna 'Saída Cliente QTD' (Foi) e 'Saída Lavanderia QTD' (Voltou). Retorne estritamente um JSON no formato: [{\"item\": \"Nome do Item\", \"enviado\": 0, \"devolvido\": 0}]. Os itens esperados são: Fronha, Lençol Casal, Lençol Solteiro, Toalha de Piso, Toalha de Banho, Toalha de Rosto, Toalha de Banho Piscina, Colchão Acolchoado, Cobertor, Peneira, Protetor Colchão, Protetor Travesseiro. Se o campo estiver em branco ou um traço, coloque 0." },
+                            { inline_data: { mime_type: "image/jpeg", data: imagemBase64 } }
+                        ]
+                    }],
+                    generationConfig: { responseMimeType: "application/json" }
+                })
+            });
+
+            if (!response.ok) {
+                const erroServidor = await response.text();
+                throw new Error("Erro do Servidor Google: " + response.status + " - " + erroServidor);
+            }
+
+            const result = await response.json();
+            
+            if (!result.candidates || !result.candidates[0].content) {
+                throw new Error("A IA não retornou conteúdo. Resposta: " + JSON.stringify(result));
+            }
+
+            let textResponse = result.candidates[0].content.parts[0].text;
+            
+            // Limpa formatação forçada (caso a IA ainda tente mandar texto em volta)
+            textResponse = textResponse.replace(/```json/g, "").replace(/```/g, "").trim();
+            
+            try {
+                dadosAtuais = JSON.parse(textResponse);
+            } catch (parseError) {
+                throw new Error("A IA não gerou um formato válido de tabela. Tentou enviar: " + textResponse);
+            }
+
+            const hoje = new Date();
+            document.getElementById('data-remessa-input').value = hoje.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: '2-digit'});
+
+            renderizarTabela();
+            document.getElementById('upload-card').style.display = 'none';
+            document.getElementById('area-relatorio').style.display = 'block';
+            document.getElementById('save-btn').style.display = 'flex';
+
+        } catch (error) {
+            mostrarErro("A requisição foi bloqueada ou falhou.", error.message);
+        }
+    }
+
+    function renderizarTabela(modoLeitura = false) {
+        const tbody = document.getElementById('table-body');
+        tbody.innerHTML = ''; 
+
+        dadosAtuais.forEach((linha, index) => {
+            const saldoHistorico = estoqueAcumulado[linha.item] || 0;
+            const saldoHoje = linha.devolvido - linha.enviado;
+            const saldoFuturo = modoLeitura ? saldoHistorico : (saldoHistorico + saldoHoje);
+
+            const tr = document.createElement('tr');
+            if(modoLeitura) {
+                tr.innerHTML = `<td>${linha.item}</td><td><b>${linha.enviado}</b></td><td><b>${linha.devolvido}</b></td><td><span class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHoje)}</span></td><td class="acumulado-col"><span class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoFuturo)}</span></td>`;
+            } else {
+                tr.innerHTML = `<td>${linha.item}</td><td><input type="number" value="${linha.enviado}" min="0" oninput="atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td><td><input type="number" value="${linha.devolvido}" min="0" oninput="atualizarValor(${index}, 'devolvido', this.value)" onfocus="this.select()"></td><td><span id="saldo-${index}" class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHoje)}</span></td><td class="acumulado-col"><span id="acumulado-${index}" class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoFuturo)}</span></td>`;
+            }
+            tbody.appendChild(tr);
+        });
+    }
+
+    function atualizarValor(index, campo, novoValor) {
+        dadosAtuais[index][campo] = novoValor === "" ? 0 : parseInt(novoValor);
+        renderizarTabela(); 
+    }
+
+    function formatarNumero(num) { return num > 0 ? "+" + num : (num === 0 ? "OK" : num); }
+
+    async function salvarEstoqueNaNuvem() {
+        const conferente = document.getElementById('nome-conferente').value;
+        const dataInput = document.getElementById('data-remessa-input').value;
+        if(conferente.trim() === "") { alert("Preencha o Nome do Conferente."); return; }
+
+        const btnSave = document.getElementById('save-btn');
+        btnSave.textContent = "⏳ Salvando..."; btnSave.disabled = true;
+
+        dadosAtuais.forEach(linha => {
+            const saldoHoje = linha.devolvido - linha.enviado;
+            if (estoqueAcumulado[linha.item] === undefined) estoqueAcumulado[linha.item] = 0;
+            estoqueAcumulado[linha.item] += saldoHoje;
+        });
+
+        try {
+            await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAcumulado);
+            await db.collection("historico_remessas").add({ hotel: "Hit Hotel", dataRemessa: dataInput, conferente: conferente, dataRegistro: firebase.firestore.FieldValue.serverTimestamp(), itens: dadosAtuais });
+
+            document.getElementById('data-remessa-input').parentElement.innerHTML = `<span class="info-label">Data</span><span class="info-value" id="data-remessa-fixa">${dataInput}</span>`;
+            document.getElementById('nome-conferente').parentElement.innerHTML = `<span class="info-label">Conferente</span><span class="info-value">${conferente}</span>`;
+
+            btnSave.style.display = 'none';
+            renderizarTabela(true); 
+            document.getElementById('download-btn').style.display = 'flex';
+        } catch (error) {
+            alert("Erro ao salvar no banco de dados.");
+            btnSave.textContent = "☁️ Confirmar e Salvar no Banco"; btnSave.disabled = false;
+        }
+    }
+
+    function baixarJPG() {
+        const area = document.getElementById('area-relatorio');
+        area.style.border = "none"; area.style.boxShadow = "none"; area.style.padding = "30px"; area.style.backgroundColor = "#ffffff";
+        html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `Relatorio_HIT_${new Date().getTime()}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+            setTimeout(() => { location.reload(); }, 2000);
+        });
+    }
+</script>
+</body>
+</html>
