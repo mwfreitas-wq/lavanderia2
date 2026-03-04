@@ -53,14 +53,14 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Motor Inteligente Google Gemini Oficial</p>
+        <p class="subtitle">Motor Inteligente com Busca Automática</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin: 15px 0;">Nenhuma imagem</div>
             <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto (Google IA)</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">A IA está lendo a caligrafia da Elis... Aguarde.</p>
+            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Iniciando os motores da IA...</p>
             <div id="debug-log"></div>
         </div>
     </div>
@@ -106,10 +106,9 @@
 </div>
 
 <script type="module">
-    // Importando o motor do Google Generative AI
     import { GoogleGenerativeAI } from "@google/generative-ai";
 
-    // A sua nova chave do Google AI
+    // Sua Chave API atual
     const GEMINI_API_KEY = "AIzaSyBJzVgkf2gL7Yj4P7t_vDTX0GJLzcCWe_s";
     
     // Suas chaves do Firebase
@@ -137,7 +136,6 @@
         document.getElementById('process-btn').style.display = 'block';
     }
 
-    // Transformamos as funções em globais para funcionarem no botão HTML
     window.previewFile = function() {
         const file = document.getElementById('file-upload').files[0];
         if (file) {
@@ -179,7 +177,8 @@
         if (!imagemBase64) { alert("A imagem ainda não foi carregada."); return; }
         
         document.getElementById('process-btn').style.display = 'none';
-        document.getElementById('loading').style.display = 'block';
+        const loadingText = document.getElementById('loading');
+        loadingText.style.display = 'block';
         document.getElementById('debug-log').style.display = 'none';
 
         try {
@@ -190,24 +189,43 @@
         }
 
         try {
-            // Inicializa a IA com o Motor Oficial do Google
             const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-            
-            // Obrigando a IA a retornar o formato JSON puro
-            const model = genAI.getGenerativeModel({ 
-                model: "gemini-1.5-flash",
-                generationConfig: { responseMimeType: "application/json" }
-            });
+            const prompt = "Você é um assistente de hotel. Extraia as quantidades da coluna 'Saída Cliente QTD' (Foi) e 'Saída Lavanderia QTD' (Voltou). Retorne estritamente um JSON puro no formato: [{\"item\": \"Nome do Item\", \"enviado\": 0, \"devolvido\": 0}]. Os itens esperados são: Fronha, Lençol Casal, Lençol Solteiro, Toalha de Piso, Toalha de Banho, Toalha de Rosto, Toalha de Banho Piscina, Colchão Acolchoado, Cobertor, Peneira, Protetor Colchão, Protetor Travesseiro. Se o campo estiver em branco ou um traço, coloque 0. Responda APENAS com o JSON, sem markdown.";
+            const imagePart = { inlineData: { data: imagemBase64, mimeType: "image/jpeg" } };
 
-            const prompt = "Você é um assistente de hotel. Extraia as quantidades da coluna 'Saída Cliente QTD' (Foi) e 'Saída Lavanderia QTD' (Voltou). Retorne estritamente um JSON puro no formato: [{\"item\": \"Nome do Item\", \"enviado\": 0, \"devolvido\": 0}]. Os itens esperados são: Fronha, Lençol Casal, Lençol Solteiro, Toalha de Piso, Toalha de Banho, Toalha de Rosto, Toalha de Banho Piscina, Colchão Acolchoado, Cobertor, Peneira, Protetor Colchão, Protetor Travesseiro. Se o campo estiver em branco ou um traço, coloque 0.";
+            // O SEGREDO ESTÁ AQUI: Lista de modelos para testar um por um
+            const modelosParaTestar = [
+                "gemini-1.5-pro-latest", 
+                "gemini-1.5-pro", 
+                "gemini-1.5-flash-latest", 
+                "gemini-1.5-flash"
+            ];
             
-            const imagePart = {
-                inlineData: { data: imagemBase64, mimeType: "image/jpeg" }
-            };
+            let textResponse = null;
+            let erroDetalhado = "";
 
-            const result = await model.generateContent([prompt, imagePart]);
-            const textResponse = result.response.text();
+            for (let nomeModelo of modelosParaTestar) {
+                try {
+                    loadingText.innerHTML = `Testando permissão no motor: <b>${nomeModelo}</b>...`;
+                    const model = genAI.getGenerativeModel({ model: nomeModelo });
+                    const result = await model.generateContent([prompt, imagePart]);
+                    textResponse = result.response.text();
+                    
+                    // Se chegou aqui, funcionou! Sai do loop.
+                    console.log(`Sucesso usando o modelo: ${nomeModelo}`);
+                    break; 
+                } catch (err) {
+                    erroDetalhado = err.message;
+                    console.warn(`O Google bloqueou o modelo ${nomeModelo}. Tentando o próximo...`);
+                }
+            }
+
+            if (!textResponse) {
+                throw new Error("Nenhum motor de IA está liberado para a sua conta no momento. Última recusa do Google: " + erroDetalhado);
+            }
             
+            // Limpa formatação caso a IA mande blocos markdown
+            textResponse = textResponse.replace(/```json/g, "").replace(/```/g, "").trim();
             dadosAtuais = JSON.parse(textResponse);
 
             const hoje = new Date();
@@ -219,7 +237,7 @@
             document.getElementById('save-btn').style.display = 'flex';
 
         } catch (error) {
-            mostrarErro("Erro ao processar a imagem com o motor da IA.", error.message);
+            mostrarErro("Erro de Permissão na Chave do Google.", error.message);
         }
     }
 
