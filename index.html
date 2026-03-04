@@ -45,14 +45,14 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Motor Ultra-Rápido Groq (Llama 4 Vision)</p>
+        <p class="subtitle">Motor Groq Otimizado para Caligrafia</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin: 15px 0;">Nenhuma imagem</div>
-            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto Rápido (Groq)</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Enviando para a Groq IA... Aguarde!</p>
+            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto Rápido</button>
+            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Lendo números e data com atenção... Aguarde!</p>
             <div id="debug-log"></div>
         </div>
     </div>
@@ -74,7 +74,7 @@
         </div>
 
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Revise a Leitura:</strong> A IA preencheu a tabela. Clique nas caixas se precisar corrigir algum número.
+            ⚠️ <strong>Revise a Leitura:</strong> A IA preencheu a tabela. Verifique se ela leu algum número escrito de forma confusa.
         </div>
 
         <div style="overflow-x: auto;">
@@ -82,8 +82,8 @@
                 <thead>
                     <tr>
                         <th>Item</th>
-                        <th>Foi<br>(Saída)</th>
-                        <th>Voltou<br>(Retorno)</th>
+                        <th>Foi<br>(Saída Cliente)</th>
+                        <th>Voltou<br>(Saída Lavanderia)</th>
                         <th>Saldo<br>Hoje</th>
                         <th class="acumulado-col">Estoque<br>Geral</th>
                     </tr>
@@ -99,7 +99,7 @@
 
 <script>
     // ==========================================
-    // CHAVE DA GROQ
+    // CHAVE DA GROQ 
     // ==========================================
     const GROQ_API_KEY = "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";
 
@@ -142,8 +142,9 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 900;
-                    const MAX_HEIGHT = 1200;
+                    // Aumentei um pouco a resolução para a IA ler melhor a caligrafia fina
+                    const MAX_WIDTH = 1200;
+                    const MAX_HEIGHT = 1600;
                     let width = img.width;
                     let height = img.height;
 
@@ -157,7 +158,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    imagemBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
+                    imagemBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
                     document.getElementById('file-name').textContent = "Imagem pronta! Pode clicar em Analisar.";
                     document.getElementById('process-btn').disabled = false;
                 }
@@ -181,8 +182,36 @@
             console.warn("Firebase não acessado, iniciando estoque zerado.");
         }
 
-        // MOTOR NOVO: Llama 4 Scout (Substituto do Llama 3.2 Vision)
+        // NOVO PROMPT TREINADO PARA CALIGRAFIA E DATAS
+        const promptEspecialista = `Você é um especialista em leitura de caligrafia de romaneios de lavanderia. Analise esta guia com extrema atenção.
+        
+REGRAS OBRIGATÓRIAS:
+1. DATA: Tente localizar a data escrita na guia (geralmente no topo) e retorne no formato DD/MM/AAAA. Se não achar, deixe vazio.
+2. COLUNAS (NÃO CONFUNDA!):
+   - A coluna 'Saída Cliente QTD' significa o que FOI para a lavanderia (Atribua isso ao valor 'enviado').
+   - A coluna 'Saída Lavanderia QTD' significa o que VOLTOU da lavanderia (Atribua isso ao valor 'devolvido').
+3. NÚMEROS: Leia a caligrafia linha por linha com cuidado. Se o campo estiver com um traço (-), rabisco ou em branco, coloque 0.
+4. FORMATO: Responda ESTRITAMENTE em formato JSON puro, sem usar a marcação \`\`\`json. O JSON DEVE ter essa exata estrutura:
+{
+  "data_guia": "DD/MM/AAAA",
+  "itens": [
+    {"item": "Fronha", "enviado": 0, "devolvido": 0},
+    {"item": "Lençol Casal", "enviado": 0, "devolvido": 0},
+    {"item": "Lençol Solteiro", "enviado": 0, "devolvido": 0},
+    {"item": "Toalha de Piso", "enviado": 0, "devolvido": 0},
+    {"item": "Toalha de Banho", "enviado": 0, "devolvido": 0},
+    {"item": "Toalha de Rosto", "enviado": 0, "devolvido": 0},
+    {"item": "Toalha de Banho Piscina", "enviado": 0, "devolvido": 0},
+    {"item": "Colchão Acolchoado", "enviado": 0, "devolvido": 0},
+    {"item": "Cobertor", "enviado": 0, "devolvido": 0},
+    {"item": "Peneira", "enviado": 0, "devolvido": 0},
+    {"item": "Protetor Colchão", "enviado": 0, "devolvido": 0},
+    {"item": "Protetor Travesseiro", "enviado": 0, "devolvido": 0}
+  ]
+}`;
+
         try {
+            // Usando o modelo visual suportado oficialmente pela Groq (Llama 3.2 11b)
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -190,19 +219,13 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: "meta-llama/llama-4-scout-17b-16e-instruct",
+                    model: "llama-3.2-11b-vision-preview",
                     messages: [
                         {
                             role: "user",
                             content: [
-                                { 
-                                    type: "text", 
-                                    text: "Você é um sistema de hotel. Analise esta guia de remessa de lavanderia. Identifique os números das colunas 'Saída Cliente QTD' e 'Saída Lavanderia QTD'. Responda ESTRITAMENTE E APENAS com um formato JSON (sem markdown, sem texto antes ou depois) assim: [{\"item\": \"Fronha\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Lençol Casal\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Lençol Solteiro\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Toalha de Piso\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Toalha de Banho\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Toalha de Rosto\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Toalha de Banho Piscina\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Colchão Acolchoado\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Cobertor\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Peneira\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Protetor Colchão\", \"enviado\": 0, \"devolvido\": 0}, {\"item\": \"Protetor Travesseiro\", \"enviado\": 0, \"devolvido\": 0}]. Mapeie os itens da imagem para essa lista. Se estiver vazio na imagem, coloque 0." 
-                                },
-                                { 
-                                    type: "image_url", 
-                                    image_url: { url: `data:image/jpeg;base64,${imagemBase64}` } 
-                                }
+                                { type: "text", text: promptEspecialista },
+                                { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imagemBase64}` } }
                             ]
                         }
                     ],
@@ -216,23 +239,30 @@
             }
 
             const result = await response.json();
-            
-            if (!result.choices || !result.choices[0].message) {
-                throw new Error("A IA não retornou conteúdo. Resposta: " + JSON.stringify(result));
-            }
-
             let textResponse = result.choices[0].message.content;
             
+            // Limpa formatações indesejadas
             textResponse = textResponse.replace(/```json/gi, "").replace(/```/g, "").trim();
             
+            let jsonLido;
             try {
-                dadosAtuais = JSON.parse(textResponse);
+                jsonLido = JSON.parse(textResponse);
             } catch (parseError) {
-                throw new Error("O servidor retornou texto ao invés de tabela. Tente enviar novamente. Retorno bruto: " + textResponse);
+                throw new Error("Falha ao interpretar a tabela. Tente enviar a foto novamente.");
             }
 
-            const hoje = new Date();
-            document.getElementById('data-remessa-input').value = hoje.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: '2-digit'});
+            // Separando os itens da data
+            dadosAtuais = jsonLido.itens || jsonLido;
+            
+            // Tratando a data encontrada
+            const inputData = document.getElementById('data-remessa-input');
+            if (jsonLido.data_guia && jsonLido.data_guia.length >= 8) {
+                inputData.value = jsonLido.data_guia;
+            } else {
+                // Se não achou, coloca hoje
+                const hoje = new Date();
+                inputData.value = hoje.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: '2-digit'});
+            }
 
             renderizarTabela();
             document.getElementById('upload-card').style.display = 'none';
