@@ -14,7 +14,7 @@
         .container { max-width: 900px; margin: auto; }
         .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 20px; }
         h1 { color: var(--dark); text-align: center; margin-top: 0; font-size: 24px; font-weight: 700; }
-        p.subtitle { text-align: center; color: var(--text-light); margin-top: -10px; margin-bottom: 20px; font-size: 14px; }
+        p.subtitle { text-align: center; color: var(--success); margin-top: -10px; margin-bottom: 20px; font-size: 15px; font-weight: bold; }
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px 20px; text-align: center; background-color: #f8fafc; transition: 0.3s; }
         input[type="file"] { display: none; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 300px; margin: 10px auto; color: white;}
@@ -45,14 +45,14 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Motor Groq Otimizado (Llama 4 Scout)</p>
+        <p class="subtitle">Motor Llama 4 (ATUALIZADO AGORA)</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin: 15px 0;">Nenhuma imagem</div>
-            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto Rápido</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Lendo números e data com atenção... Aguarde!</p>
+            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto (Versão Final)</button>
+            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Lendo caligrafia com Llama 4... Aguarde!</p>
             <div id="debug-log"></div>
         </div>
     </div>
@@ -98,14 +98,10 @@
 </div>
 
 <script>
-    // ==========================================
-    // CHAVE DA GROQ 
-    // ==========================================
+    // CHAVE DA GROQ ATIVA
     const GROQ_API_KEY = "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";
 
-    // ==========================================
     // CHAVES DO FIREBASE
-    // ==========================================
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
         authDomain: "lavanderia-hoteis.firebaseapp.com",
@@ -209,7 +205,7 @@ REGRAS OBRIGATÓRIAS:
 }`;
 
         try {
-            // MOTOR CORRETO DE VISÃO DA GROQ: Llama 4 Scout Oficial
+            // Chamando o NOVO motor da Groq que funciona (Llama 4)
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
