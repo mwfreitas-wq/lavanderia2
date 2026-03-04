@@ -45,7 +45,7 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Motor Ultra-Rápido Groq (Llama 3.2 Vision)</p>
+        <p class="subtitle">Motor Ultra-Rápido Groq (Llama 4 Vision)</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
@@ -99,12 +99,12 @@
 
 <script>
     // ==========================================
-    // 1. SUA CHAVE DA GROQ FOI INSERIDA AQUI:
+    // CHAVE DA GROQ
     // ==========================================
     const GROQ_API_KEY = "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";
 
     // ==========================================
-    // 2. CHAVES DO FIREBASE (MANTIDAS INTACTAS)
+    // CHAVES DO FIREBASE
     // ==========================================
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
@@ -157,7 +157,6 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Formato super leve para a Groq voar no processamento
                     imagemBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
                     document.getElementById('file-name').textContent = "Imagem pronta! Pode clicar em Analisar.";
                     document.getElementById('process-btn').disabled = false;
@@ -175,7 +174,6 @@
         document.getElementById('loading').style.display = 'block';
         document.getElementById('debug-log').style.display = 'none';
 
-        // Busca o banco de dados primeiro
         try {
             const docRef = await db.collection("estoque_hoteis").doc("hit_hotel").get();
             if (docRef.exists) estoqueAcumulado = docRef.data();
@@ -183,7 +181,7 @@
             console.warn("Firebase não acessado, iniciando estoque zerado.");
         }
 
-        // Chamando a Groq API (Llama 3.2 90B Vision)
+        // MOTOR NOVO: Llama 4 Scout (Substituto do Llama 3.2 Vision)
         try {
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
@@ -192,7 +190,7 @@
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: "llama-3.2-90b-vision-preview",
+                    model: "meta-llama/llama-4-scout-17b-16e-instruct",
                     messages: [
                         {
                             role: "user",
@@ -225,7 +223,6 @@
 
             let textResponse = result.choices[0].message.content;
             
-            // Limpa qualquer sujeira que a IA mande junto com a tabela
             textResponse = textResponse.replace(/```json/gi, "").replace(/```/g, "").trim();
             
             try {
