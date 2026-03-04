@@ -8,6 +8,14 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
+    <script type="importmap">
+      {
+        "imports": {
+          "@google/generative-ai": "https://esm.run/@google/generative-ai"
+        }
+      }
+    </script>
+
     <style>
         :root { --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --dark: #1e293b; --text-main: #334155; --text-light: #64748b; --bg-color: #f1f5f9; --card-bg: #ffffff; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px 10px; }
@@ -45,14 +53,14 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Faça o upload da foto. A Inteligência Artificial fará a leitura.</p>
+        <p class="subtitle">Motor Inteligente Google Gemini Oficial</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin: 15px 0;">Nenhuma imagem</div>
-            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto (Hugging Face)</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">A IA está processando a imagem... Aguarde.</p>
+            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto (Google IA)</button>
+            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">A IA está lendo a caligrafia da Elis... Aguarde.</p>
             <div id="debug-log"></div>
         </div>
     </div>
@@ -74,7 +82,7 @@
         </div>
 
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Revise a Leitura da IA:</strong> A IA fez o preenchimento. Clique nas caixas e corrija se algum número estiver errado com a foto.
+            ⚠️ <strong>Revise a Leitura da IA:</strong> A IA preencheu a tabela. Clique nas caixas se precisar corrigir algum número lido.
         </div>
 
         <div style="overflow-x: auto;">
@@ -97,13 +105,14 @@
     <button id="download-btn" class="btn btn-primary" style="display: none; max-width: 400px;" onclick="baixarJPG()">📥 Baixar Relatório (JPG)</button>
 </div>
 
-<script>
-    // ==========================================
-    // CHAVE HUGGING FACE INSERIDA:
-    // ==========================================
-    const HF_API_KEY = "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";
+<script type="module">
+    // Importando o motor do Google Generative AI
+    import { GoogleGenerativeAI } from "@google/generative-ai";
 
-    // Chaves do seu Banco de Dados (Firebase)
+    // A sua nova chave do Google AI
+    const GEMINI_API_KEY = "AIzaSyBJzVgkf2gL7Yj4P7t_vDTX0GJLzcCWe_s";
+    
+    // Suas chaves do Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
         authDomain: "lavanderia-hoteis.firebaseapp.com",
@@ -115,6 +124,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
+    
     let dadosAtuais = [];
     let estoqueAcumulado = {};
     let imagemBase64 = "";
@@ -127,10 +137,11 @@
         document.getElementById('process-btn').style.display = 'block';
     }
 
-    function previewFile() {
+    // Transformamos as funções em globais para funcionarem no botão HTML
+    window.previewFile = function() {
         const file = document.getElementById('file-upload').files[0];
         if (file) {
-            document.getElementById('file-name').textContent = "Arquivo: " + file.name + " (Processando...)";
+            document.getElementById('file-name').textContent = "Arquivo: " + file.name;
             document.getElementById('process-btn').disabled = true;
             document.getElementById('debug-log').style.display = 'none';
             
@@ -139,9 +150,8 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    // Imagem ajustada para o limite da Hugging Face
-                    const MAX_WIDTH = 800;
-                    const MAX_HEIGHT = 1000;
+                    const MAX_WIDTH = 1200;
+                    const MAX_HEIGHT = 1600;
                     let width = img.width;
                     let height = img.height;
 
@@ -155,8 +165,8 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    imagemBase64 = canvas.toDataURL('image/jpeg', 0.6).split(',')[1];
-                    document.getElementById('file-name').textContent = "Imagem pronta! Pode analisar.";
+                    imagemBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                    document.getElementById('file-name').textContent = "Imagem pronta! Clique em Analisar.";
                     document.getElementById('process-btn').disabled = false;
                 }
                 img.src = event.target.result;
@@ -165,7 +175,7 @@
         }
     }
 
-    async function processarComIA() {
+    window.processarComIA = async function() {
         if (!imagemBase64) { alert("A imagem ainda não foi carregada."); return; }
         
         document.getElementById('process-btn').style.display = 'none';
@@ -176,71 +186,44 @@
             const docRef = await db.collection("estoque_hoteis").doc("hit_hotel").get();
             if (docRef.exists) estoqueAcumulado = docRef.data();
         } catch (error) {
-            console.warn("Sem acesso ao Firebase ainda.");
+            console.warn("Firebase não alcançado, usando estoque zerado.");
         }
 
         try {
-            // Chamando a API do Hugging Face (Modelo Llama 3.2 Vision)
-            const response = await fetch("https://api-inference.huggingface.co/models/meta-llama/Llama-3.2-11B-Vision-Instruct/v1/chat/completions", {
-                method: "POST",
-                headers: {
-                    "Authorization": `Bearer ${HF_API_KEY}`,
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    model: "meta-llama/Llama-3.2-11B-Vision-Instruct",
-                    messages: [
-                        {
-                            role: "user",
-                            content: [
-                                { type: "text", text: "Você é um assistente de hotel. Extraia as quantidades da coluna 'Saída Cliente QTD' (Foi) e 'Saída Lavanderia QTD' (Voltou). Retorne estritamente um JSON puro no formato: [{\"item\": \"Nome do Item\", \"enviado\": 0, \"devolvido\": 0}]. Os itens esperados são: Fronha, Lençol Casal, Lençol Solteiro, Toalha de Piso, Toalha de Banho, Toalha de Rosto, Toalha de Banho Piscina, Colchão Acolchoado, Cobertor, Peneira, Protetor Colchão, Protetor Travesseiro. Se o campo estiver em branco ou um traço, coloque 0. Não inclua nenhum texto Markdown, apenas o JSON." },
-                                { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imagemBase64}` } }
-                            ]
-                        }
-                    ],
-                    max_tokens: 500
-                })
+            // Inicializa a IA com o Motor Oficial do Google
+            const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+            
+            // Obrigando a IA a retornar o formato JSON puro
+            const model = genAI.getGenerativeModel({ 
+                model: "gemini-1.5-flash",
+                generationConfig: { responseMimeType: "application/json" }
             });
 
-            if (!response.ok) {
-                const erroServidor = await response.text();
-                // TRATAMENTO PARA O ERRO 503 DO HUGGING FACE
-                if(response.status === 503) {
-                    throw new Error("O servidor do Hugging Face está 'acordando' o modelo de IA. Por favor, aguarde 20 segundos e clique em Analisar novamente.");
-                }
-                throw new Error("Erro Hugging Face: " + response.status + " - " + erroServidor);
-            }
+            const prompt = "Você é um assistente de hotel. Extraia as quantidades da coluna 'Saída Cliente QTD' (Foi) e 'Saída Lavanderia QTD' (Voltou). Retorne estritamente um JSON puro no formato: [{\"item\": \"Nome do Item\", \"enviado\": 0, \"devolvido\": 0}]. Os itens esperados são: Fronha, Lençol Casal, Lençol Solteiro, Toalha de Piso, Toalha de Banho, Toalha de Rosto, Toalha de Banho Piscina, Colchão Acolchoado, Cobertor, Peneira, Protetor Colchão, Protetor Travesseiro. Se o campo estiver em branco ou um traço, coloque 0.";
+            
+            const imagePart = {
+                inlineData: { data: imagemBase64, mimeType: "image/jpeg" }
+            };
 
-            const result = await response.json();
+            const result = await model.generateContent([prompt, imagePart]);
+            const textResponse = result.response.text();
             
-            if (!result.choices || !result.choices[0].message) {
-                throw new Error("A IA não retornou o formato esperado.");
-            }
-
-            let textResponse = result.choices[0].message.content;
-            
-            textResponse = textResponse.replace(/```json/g, "").replace(/```/g, "").trim();
-            
-            try {
-                dadosAtuais = JSON.parse(textResponse);
-            } catch (parseError) {
-                throw new Error("A IA gerou texto ao invés de tabela: " + textResponse);
-            }
+            dadosAtuais = JSON.parse(textResponse);
 
             const hoje = new Date();
             document.getElementById('data-remessa-input').value = hoje.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: '2-digit'});
 
-            renderizarTabela();
+            window.renderizarTabela();
             document.getElementById('upload-card').style.display = 'none';
             document.getElementById('area-relatorio').style.display = 'block';
             document.getElementById('save-btn').style.display = 'flex';
 
         } catch (error) {
-            mostrarErro("Erro na leitura da IA.", error.message);
+            mostrarErro("Erro ao processar a imagem com o motor da IA.", error.message);
         }
     }
 
-    function renderizarTabela(modoLeitura = false) {
+    window.renderizarTabela = function(modoLeitura = false) {
         const tbody = document.getElementById('table-body');
         tbody.innerHTML = ''; 
 
@@ -251,22 +234,22 @@
 
             const tr = document.createElement('tr');
             if(modoLeitura) {
-                tr.innerHTML = `<td>${linha.item}</td><td><b>${linha.enviado}</b></td><td><b>${linha.devolvido}</b></td><td><span class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHoje)}</span></td><td class="acumulado-col"><span class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoFuturo)}</span></td>`;
+                tr.innerHTML = `<td>${linha.item}</td><td><b>${linha.enviado}</b></td><td><b>${linha.devolvido}</b></td><td><span class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${window.formatarNumero(saldoHoje)}</span></td><td class="acumulado-col"><span class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${window.formatarNumero(saldoFuturo)}</span></td>`;
             } else {
-                tr.innerHTML = `<td>${linha.item}</td><td><input type="number" value="${linha.enviado}" min="0" oninput="atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td><td><input type="number" value="${linha.devolvido}" min="0" oninput="atualizarValor(${index}, 'devolvido', this.value)" onfocus="this.select()"></td><td><span id="saldo-${index}" class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHoje)}</span></td><td class="acumulado-col"><span id="acumulado-${index}" class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoFuturo)}</span></td>`;
+                tr.innerHTML = `<td>${linha.item}</td><td><input type="number" value="${linha.enviado}" min="0" oninput="window.atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td><td><input type="number" value="${linha.devolvido}" min="0" oninput="window.atualizarValor(${index}, 'devolvido', this.value)" onfocus="this.select()"></td><td><span id="saldo-${index}" class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${window.formatarNumero(saldoHoje)}</span></td><td class="acumulado-col"><span id="acumulado-${index}" class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${window.formatarNumero(saldoFuturo)}</span></td>`;
             }
             tbody.appendChild(tr);
         });
     }
 
-    function atualizarValor(index, campo, novoValor) {
+    window.atualizarValor = function(index, campo, novoValor) {
         dadosAtuais[index][campo] = novoValor === "" ? 0 : parseInt(novoValor);
-        renderizarTabela(); 
+        window.renderizarTabela(); 
     }
 
-    function formatarNumero(num) { return num > 0 ? "+" + num : (num === 0 ? "OK" : num); }
+    window.formatarNumero = function(num) { return num > 0 ? "+" + num : (num === 0 ? "OK" : num); }
 
-    async function salvarEstoqueNaNuvem() {
+    window.salvarEstoqueNaNuvem = async function() {
         const conferente = document.getElementById('nome-conferente').value;
         const dataInput = document.getElementById('data-remessa-input').value;
         if(conferente.trim() === "") { alert("Preencha o Nome do Conferente."); return; }
@@ -288,7 +271,7 @@
             document.getElementById('nome-conferente').parentElement.innerHTML = `<span class="info-label">Conferente</span><span class="info-value">${conferente}</span>`;
 
             btnSave.style.display = 'none';
-            renderizarTabela(true); 
+            window.renderizarTabela(true); 
             document.getElementById('download-btn').style.display = 'flex';
         } catch (error) {
             alert("Erro ao salvar no banco de dados.");
@@ -296,7 +279,7 @@
         }
     }
 
-    function baixarJPG() {
+    window.baixarJPG = function() {
         const area = document.getElementById('area-relatorio');
         area.style.border = "none"; area.style.boxShadow = "none"; area.style.padding = "30px"; area.style.backgroundColor = "#ffffff";
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
