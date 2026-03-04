@@ -45,7 +45,7 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Motor Groq Otimizado para Caligrafia</p>
+        <p class="subtitle">Motor Groq Llama 3.2 90B (Oficial)</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
@@ -142,7 +142,6 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    // Aumentei um pouco a resolução para a IA ler melhor a caligrafia fina
                     const MAX_WIDTH = 1200;
                     const MAX_HEIGHT = 1600;
                     let width = img.width;
@@ -182,7 +181,6 @@
             console.warn("Firebase não acessado, iniciando estoque zerado.");
         }
 
-        // NOVO PROMPT TREINADO PARA CALIGRAFIA E DATAS
         const promptEspecialista = `Você é um especialista em leitura de caligrafia de romaneios de lavanderia. Analise esta guia com extrema atenção.
         
 REGRAS OBRIGATÓRIAS:
@@ -211,7 +209,7 @@ REGRAS OBRIGATÓRIAS:
 }`;
 
         try {
-            // Usando o modelo visual suportado oficialmente pela Groq (Llama 3.2 11b)
+            // CORREÇÃO AQUI: Chamando o modelo oficial atualizado da Groq
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -219,7 +217,7 @@ REGRAS OBRIGATÓRIAS:
                     "Content-Type": "application/json"
                 },
                 body: JSON.stringify({
-                    model: "llama-3.2-11b-vision-preview",
+                    model: "llama-3.2-90b-vision-instruct",
                     messages: [
                         {
                             role: "user",
@@ -241,7 +239,6 @@ REGRAS OBRIGATÓRIAS:
             const result = await response.json();
             let textResponse = result.choices[0].message.content;
             
-            // Limpa formatações indesejadas
             textResponse = textResponse.replace(/```json/gi, "").replace(/```/g, "").trim();
             
             let jsonLido;
@@ -251,15 +248,12 @@ REGRAS OBRIGATÓRIAS:
                 throw new Error("Falha ao interpretar a tabela. Tente enviar a foto novamente.");
             }
 
-            // Separando os itens da data
             dadosAtuais = jsonLido.itens || jsonLido;
             
-            // Tratando a data encontrada
             const inputData = document.getElementById('data-remessa-input');
             if (jsonLido.data_guia && jsonLido.data_guia.length >= 8) {
                 inputData.value = jsonLido.data_guia;
             } else {
-                // Se não achou, coloca hoje
                 const hoje = new Date();
                 inputData.value = hoje.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: '2-digit'});
             }
