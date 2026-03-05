@@ -45,14 +45,14 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Motor Llama 4 (ATUALIZADO AGORA)</p>
+        <p class="subtitle">Motor Llama 4 (Treinado para Caligrafia da Elis)</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin: 15px 0;">Nenhuma imagem</div>
-            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto (Versão Final)</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Lendo caligrafia com Llama 4... Aguarde!</p>
+            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto Inteligente</button>
+            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Focando nos números corretos... Aguarde!</p>
             <div id="debug-log"></div>
         </div>
     </div>
@@ -74,7 +74,7 @@
         </div>
 
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Revise a Leitura:</strong> A IA preencheu a tabela. Verifique se ela leu algum número escrito de forma confusa.
+            ⚠️ <strong>Revise a Leitura:</strong> A IA priorizou os números que você anotou ao lado. Verifique se a leitura bate com a nota.
         </div>
 
         <div style="overflow-x: auto;">
@@ -98,7 +98,7 @@
 </div>
 
 <script>
-    // CHAVE DA GROQ ATIVA
+    // CHAVE DA GROQ
     const GROQ_API_KEY = "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";
 
     // CHAVES DO FIREBASE
@@ -177,15 +177,20 @@
             console.warn("Firebase não acessado, iniciando estoque zerado.");
         }
 
-        const promptEspecialista = `Você é um especialista em leitura de caligrafia de romaneios de lavanderia. Analise esta guia com extrema atenção.
+        // O SUPER PROMPT DE CALIGRAFIA
+        const promptEspecialista = `Você é um especialista em extração de dados de romaneios de lavanderia preenchidos à mão. A caligrafia original (em azul claro) é confusa, ENTÃO O USUÁRIO ANOTOU OS NÚMEROS CORRETOS AO LADO DA CALIGRAFIA AZUL (em tinta escura/preta).
         
-REGRAS OBRIGATÓRIAS:
-1. DATA: Tente localizar a data escrita na guia (geralmente no topo) e retorne no formato DD/MM/AAAA. Se não achar, deixe vazio.
-2. COLUNAS (NÃO CONFUNDA!):
-   - A coluna 'Saída Cliente QTD' significa o que FOI para a lavanderia (Atribua isso ao valor 'enviado').
-   - A coluna 'Saída Lavanderia QTD' significa o que VOLTOU da lavanderia (Atribua isso ao valor 'devolvido').
-3. NÚMEROS: Leia a caligrafia linha por linha com cuidado. Se o campo estiver com um traço (-), rabisco ou em branco, coloque 0.
-4. FORMATO: Responda ESTRITAMENTE em formato JSON puro, sem usar a marcação \`\`\`json. O JSON DEVE ter essa exata estrutura:
+REGRAS ABSOLUTAS:
+1. ANCORAGEM NOS NÚMEROS ANOTADOS: Sempre que você vir dois números juntos na mesma célula (ex: um borrão azul e um "47" preto bem legível do lado), CONFIE 100% NO NÚMERO ANOTADO (neste exemplo, 47). Ignore os rabiscos azuis se houver um número legível ao lado dele.
+2. ATENÇÃO ÀS COLUNAS:
+   - 'Saída Cliente QTD': É a primeira coluna de números. Extraia isso como o valor "enviado".
+   - A coluna do meio ("Entrada Lavanderia") geralmente ESTÁ VAZIA. Pule ela!
+   - 'Saída Lavanderia': É a terceira coluna de números. Extraia isso como o valor "devolvido".
+3. A DATA DA GUIA: Tente ler a "Data" no cabeçalho (ex: 02, 03, 26). Se estiver confuso lá em cima, olhe no rodapé no quadro azul "CONTROLE DE COLETA", a data está mais clara lá. Formate a saída SEMPRE como DD/MM/AAAA (ex: 02/03/2026).
+4. ITENS ESCRITOS À MÃO: Inclua na leitura os itens que foram adicionados à caneta na descrição, como "Peneira". E note que existe "Toalha de Rosto" e "Toalha de Rosto Piscina".
+5. FORMATO DE SAÍDA: OBRIGATORIAMENTE gere apenas um JSON válido, sem texto antes ou depois, sem \`\`\`json. Se a linha estiver vazia, coloque 0.
+
+Use EXATAMENTE este molde JSON:
 {
   "data_guia": "DD/MM/AAAA",
   "itens": [
@@ -195,6 +200,7 @@ REGRAS OBRIGATÓRIAS:
     {"item": "Toalha de Piso", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Banho", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Rosto", "enviado": 0, "devolvido": 0},
+    {"item": "Toalha de Rosto Piscina", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Banho Piscina", "enviado": 0, "devolvido": 0},
     {"item": "Colchão Acolchoado", "enviado": 0, "devolvido": 0},
     {"item": "Cobertor", "enviado": 0, "devolvido": 0},
@@ -205,7 +211,6 @@ REGRAS OBRIGATÓRIAS:
 }`;
 
         try {
-            // Chamando o NOVO motor da Groq que funciona (Llama 4)
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
                 method: "POST",
                 headers: {
@@ -223,7 +228,7 @@ REGRAS OBRIGATÓRIAS:
                             ]
                         }
                     ],
-                    temperature: 0.1
+                    temperature: 0.0 // Mudado para 0 para focar estritamente na leitura visual (sem invenções)
                 })
             });
 
@@ -235,19 +240,21 @@ REGRAS OBRIGATÓRIAS:
             const result = await response.json();
             let textResponse = result.choices[0].message.content;
             
+            // Limpeza bruta de Markdown que a IA teima em mandar
             textResponse = textResponse.replace(/```json/gi, "").replace(/```/g, "").trim();
             
             let jsonLido;
             try {
                 jsonLido = JSON.parse(textResponse);
             } catch (parseError) {
-                throw new Error("Falha ao interpretar a tabela. Tente enviar a foto novamente.");
+                throw new Error("Falha ao interpretar a tabela. Retorno da IA: " + textResponse);
             }
 
+            // Atribuição de dados
             dadosAtuais = jsonLido.itens || jsonLido;
             
             const inputData = document.getElementById('data-remessa-input');
-            if (jsonLido.data_guia && jsonLido.data_guia.length >= 8) {
+            if (jsonLido.data_guia && jsonLido.data_guia.includes('/')) {
                 inputData.value = jsonLido.data_guia;
             } else {
                 const hoje = new Date();
