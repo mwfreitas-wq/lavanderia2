@@ -9,7 +9,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
-        :root { --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --dark: #1e293b; --text-main: #334155; --text-light: #64748b; --bg-color: #f1f5f9; --card-bg: #ffffff; }
+        :root { --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --share: #8b5cf6; --dark: #1e293b; --text-main: #334155; --text-light: #64748b; --bg-color: #f1f5f9; --card-bg: #ffffff; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px 10px; }
         .container { max-width: 900px; margin: auto; }
         .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 20px; }
@@ -25,6 +25,7 @@
         .btn-success { background-color: var(--success); }
         .btn-warning { background-color: var(--warning); }
         .btn-danger { background-color: var(--danger); }
+        .btn-share { background-color: var(--share); }
         .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
         
         .info-panel { display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-items: center; background-color: #f8fafc; border-left: 4px solid var(--primary); padding: 15px; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
@@ -48,6 +49,12 @@
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
         th { background-color: #f8fafc; color: var(--text-light); font-size: 12px; text-transform: uppercase; }
         td:first-child { text-align: left; font-weight: 600; color: var(--dark); }
+        
+        /* Estilo da Linha de Total */
+        tfoot tr { background-color: #e2e8f0; border-top: 2px solid #94a3b8; }
+        tfoot td { padding: 14px 8px; text-align: center; font-size: 14px; font-weight: bold; color: var(--dark); }
+        tfoot td:first-child { text-align: right; text-transform: uppercase; padding-right: 15px; }
+
         input[type="number"] { width: 55px; padding: 8px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; font-weight: bold; color: var(--primary); background-color: #f8fafc; }
         input[type="number"]:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 13px; }
@@ -69,7 +76,7 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Com Zoom e Download Turbinado</p>
+        <p class="subtitle">Com Botão de Compartilhar Relatório</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
@@ -119,12 +126,16 @@
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
+                <tfoot id="table-foot"></tfoot>
             </table>
         </div>
     </div>
 
     <div class="btn-group" id="action-buttons" style="display: none;">
         <button id="save-btn" class="btn btn-success" style="padding: 16px;" onclick="salvarEstoqueNaNuvem()">☁️ Confirmar e Salvar no Banco</button>
+        
+        <button id="share-btn" class="btn btn-share" style="display: none;" onclick="compartilharRelatorio()">📲 Compartilhar no WhatsApp/Email</button>
+        
         <button id="download-btn" class="btn btn-primary" onclick="baixarJPG()">📥 Baixar Relatório Completo (JPG)</button>
         <button id="clear-btn" class="btn btn-danger" onclick="limparDados()">🗑️ Apagar Dados e Recomeçar</button>
     </div>
@@ -151,7 +162,6 @@
     let imagemBase64 = "";
     let imagemCompletaComCabecalho = "";
 
-    // FUNÇÕES DE ZOOM DA FOTO
     function abrirZoom() {
         document.getElementById('image-modal').style.display = "block";
         document.getElementById('img-zoomed').src = imagemCompletaComCabecalho;
@@ -181,7 +191,7 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1400; // Resolução ainda maior para o zoom ficar excelente
+                    const MAX_WIDTH = 1400; 
                     const MAX_HEIGHT = 1800;
                     let width = img.width;
                     let height = img.height;
@@ -300,12 +310,11 @@ Use EXATAMENTE este molde JSON:
 
             renderizarTabela(false);
             
-            // TROCA DE TELAS E EXIBIÇÃO DE TODOS OS BOTÕES AO MESMO TEMPO
             document.getElementById('upload-card').style.display = 'none';
             document.getElementById('area-relatorio').style.display = 'block';
-            document.getElementById('action-buttons').style.display = 'flex'; // Exibe a área dos botões
+            document.getElementById('action-buttons').style.display = 'flex'; 
             document.getElementById('save-btn').style.display = 'inline-flex';
-            document.getElementById('download-btn').style.display = 'inline-flex'; // Botão de Baixar liberado logo de cara!
+            document.getElementById('download-btn').style.display = 'inline-flex'; 
             document.getElementById('clear-btn').style.display = 'inline-flex';
 
         } catch (error) {
@@ -315,12 +324,19 @@ Use EXATAMENTE este molde JSON:
 
     function renderizarTabela(modoLeitura = false) {
         const tbody = document.getElementById('table-body');
+        const tfoot = document.getElementById('table-foot');
         tbody.innerHTML = ''; 
+
+        let totalSaldoHoje = 0;
+        let totalEstoqueGeral = 0;
 
         dadosAtuais.forEach((linha, index) => {
             const saldoHistorico = estoqueAcumulado[linha.item] || 0;
             const saldoHoje = linha.devolvido - linha.enviado;
             const saldoFuturo = modoLeitura ? saldoHistorico : (saldoHistorico + saldoHoje);
+
+            totalSaldoHoje += saldoHoje;
+            totalEstoqueGeral += saldoFuturo;
 
             const tr = document.createElement('tr');
             if(modoLeitura) {
@@ -336,6 +352,14 @@ Use EXATAMENTE este molde JSON:
             }
             tbody.appendChild(tr);
         });
+
+        tfoot.innerHTML = `
+            <tr>
+                <td colspan="3">TOTAL GERAL:</td>
+                <td><span id="total-saldo" class="status-badge ${totalSaldoHoje < 0 ? 'negative' : (totalSaldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(totalSaldoHoje)}</span></td>
+                <td class="acumulado-col"><span id="total-estoque" class="status-badge ${totalEstoqueGeral < 0 ? 'negative' : (totalEstoqueGeral > 0 ? 'positive' : 'neutral')}">${formatarNumero(totalEstoqueGeral)}</span></td>
+            </tr>
+        `;
     }
 
     function atualizarValor(index, campo, novoValor) {
@@ -355,6 +379,27 @@ Use EXATAMENTE este molde JSON:
         if(spanAcumulado) {
             spanAcumulado.textContent = formatarNumero(saldoFuturo);
             spanAcumulado.className = `status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}`;
+        }
+
+        let novoTotalSaldo = 0;
+        let novoTotalEstoque = 0;
+        dadosAtuais.forEach(linha => {
+            let sHoje = linha.devolvido - linha.enviado;
+            let sHist = estoqueAcumulado[linha.item] || 0;
+            novoTotalSaldo += sHoje;
+            novoTotalEstoque += (sHist + sHoje);
+        });
+
+        const spanTotalSaldo = document.getElementById('total-saldo');
+        if(spanTotalSaldo) {
+            spanTotalSaldo.textContent = formatarNumero(novoTotalSaldo);
+            spanTotalSaldo.className = `status-badge ${novoTotalSaldo < 0 ? 'negative' : (novoTotalSaldo > 0 ? 'positive' : 'neutral')}`;
+        }
+
+        const spanTotalEstoque = document.getElementById('total-estoque');
+        if(spanTotalEstoque) {
+            spanTotalEstoque.textContent = formatarNumero(novoTotalEstoque);
+            spanTotalEstoque.className = `status-badge ${novoTotalEstoque < 0 ? 'negative' : (novoTotalEstoque > 0 ? 'positive' : 'neutral')}`;
         }
     }
 
@@ -387,38 +432,94 @@ Use EXATAMENTE este molde JSON:
             document.getElementById('data-remessa-input').parentElement.innerHTML = `<span class="info-label">Data</span><span class="info-value" id="data-remessa-fixa">${dataInput}</span>`;
             document.getElementById('nome-conferente').parentElement.innerHTML = `<span class="info-label">Conferente</span><span class="info-value">${conferente}</span>`;
 
-            btnSave.style.display = 'none'; // Esconde o salvar
-            renderizarTabela(true); // Trava os campos
+            btnSave.style.display = 'none'; 
+            renderizarTabela(true); 
+            
+            // EXIBE O BOTÃO DE COMPARTILHAR APÓS SALVAR
+            document.getElementById('share-btn').style.display = 'inline-flex';
+
         } catch (error) {
             alert("Erro ao salvar no banco de dados.");
             btnSave.textContent = "☁️ Confirmar e Salvar no Banco"; btnSave.disabled = false;
         }
     }
 
-    function baixarJPG() {
-        // Fechar o zoom se ele estiver aberto para não bugar o print
-        fecharZoom();
+    // NOVA FUNÇÃO: Compartilhar Relatório nativamente pelo celular (WhatsApp, Email, etc)
+    function compartilharRelatorio() {
+        fecharZoom(); // Segurança
         
+        const btnShare = document.getElementById('share-btn');
+        const originalText = btnShare.innerHTML;
+        btnShare.innerHTML = "⏳ Preparando Arquivo...";
+        btnShare.disabled = true;
+
         const area = document.getElementById('area-relatorio');
         
-        // Formata a área para gerar uma imagem bonita e sem sobras
         area.style.border = "none"; 
         area.style.boxShadow = "none"; 
         area.style.padding = "30px"; 
         area.style.backgroundColor = "#ffffff";
         
-        // Comando mágico que tira "print" do relatório inteiro
+        const avisoAmarelo = area.querySelector('div[style*="background-color: #fffbeb"]');
+        if (avisoAmarelo) avisoAmarelo.style.display = 'none';
+        
+        html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
+            // Devolve o visual do sistema ao normal na tela
+            area.style.border = ""; 
+            area.style.boxShadow = ""; 
+            area.style.padding = "24px"; 
+            area.style.backgroundColor = "var(--card-bg)";
+            if (avisoAmarelo) avisoAmarelo.style.display = 'block';
+
+            // Converter a imagem para um arquivo real suportado pelo WhatsApp/Email
+            canvas.toBlob(async function(blob) {
+                const file = new File([blob], `Relatorio_HIT_${new Date().getTime()}.jpg`, { type: 'image/jpeg' });
+                
+                // Tenta abrir a janela de compartilhamento nativa do sistema operacional
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            title: 'Relatório Lavanderia Hit Hotel',
+                            text: 'Segue o relatório de enxoval atualizado.',
+                            files: [file]
+                        });
+                    } catch (error) {
+                        console.log('Compartilhamento cancelado ou falhou', error);
+                    }
+                } else {
+                    alert("Seu navegador ou dispositivo não suporta o envio direto. Por favor, use o botão azul 'Baixar Relatório' e envie o arquivo pela sua galeria.");
+                }
+
+                btnShare.innerHTML = originalText;
+                btnShare.disabled = false;
+            }, 'image/jpeg', 0.9);
+        });
+    }
+
+    function baixarJPG() {
+        fecharZoom(); 
+        
+        const area = document.getElementById('area-relatorio');
+        
+        area.style.border = "none"; 
+        area.style.boxShadow = "none"; 
+        area.style.padding = "30px"; 
+        area.style.backgroundColor = "#ffffff";
+        
+        const avisoAmarelo = area.querySelector('div[style*="background-color: #fffbeb"]');
+        if (avisoAmarelo) avisoAmarelo.style.display = 'none';
+        
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Relatorio_HIT_${new Date().getTime()}.jpg`;
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
             
-            // Devolve o visual do sistema ao normal
             area.style.border = ""; 
             area.style.boxShadow = ""; 
             area.style.padding = "24px"; 
             area.style.backgroundColor = "var(--card-bg)";
+            if (avisoAmarelo) avisoAmarelo.style.display = 'block';
         });
     }
 </script>
