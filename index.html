@@ -14,7 +14,7 @@
         .container { max-width: 900px; margin: auto; }
         .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 20px; }
         h1 { color: var(--dark); text-align: center; margin-top: 0; font-size: 24px; font-weight: 700; }
-        p.subtitle { text-align: center; color: var(--success); margin-top: -10px; margin-bottom: 20px; font-size: 15px; font-weight: bold; }
+        p.subtitle { text-align: center; color: var(--primary); margin-top: -10px; margin-bottom: 20px; font-size: 14px; font-weight: bold; }
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px 20px; text-align: center; background-color: #f8fafc; transition: 0.3s; }
         input[type="file"] { display: none; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 300px; margin: 10px auto; color: white;}
@@ -45,14 +45,14 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Motor Llama 4 (Treinado para Caligrafia da Elis)</p>
+        <p class="subtitle">Com Filtro de Escaneamento (Raio-X)</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin: 15px 0;">Nenhuma imagem</div>
-            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto Inteligente</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Focando nos números corretos... Aguarde!</p>
+            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto Rápido</button>
+            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Aplicando filtro de Raio-X e lendo números... Aguarde!</p>
             <div id="debug-log"></div>
         </div>
     </div>
@@ -74,7 +74,7 @@
         </div>
 
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Revise a Leitura:</strong> A IA priorizou os números que você anotou ao lado. Verifique se a leitura bate com a nota.
+            ⚠️ <strong>Revise a Leitura:</strong> A IA priorizou os números escuros anotados por você. Revise a tabela abaixo.
         </div>
 
         <div style="overflow-x: auto;">
@@ -98,10 +98,14 @@
 </div>
 
 <script>
-    // CHAVE DA GROQ
+    // ==========================================
+    // CHAVE DA GROQ ATIVA
+    // ==========================================
     const GROQ_API_KEY = "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";
 
+    // ==========================================
     // CHAVES DO FIREBASE
+    // ==========================================
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
         authDomain: "lavanderia-hoteis.firebaseapp.com",
@@ -151,10 +155,13 @@
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
+                    
+                    // 🪄 MÁGICA: Filtro Raio-X! Deixa em P&B e estoura o contraste para apagar os rabiscos azuis e deixar sua caneta preta brilhando!
+                    ctx.filter = 'grayscale(100%) contrast(150%) brightness(110%)';
                     ctx.drawImage(img, 0, 0, width, height);
 
                     imagemBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-                    document.getElementById('file-name').textContent = "Imagem pronta! Pode clicar em Analisar.";
+                    document.getElementById('file-name').textContent = "Imagem limpa e pronta! Pode clicar em Analisar.";
                     document.getElementById('process-btn').disabled = false;
                 }
                 img.src = event.target.result;
@@ -177,22 +184,21 @@
             console.warn("Firebase não acessado, iniciando estoque zerado.");
         }
 
-        // O SUPER PROMPT DE CALIGRAFIA
-        const promptEspecialista = `Você é um especialista em extração de dados de romaneios de lavanderia preenchidos à mão. A caligrafia original (em azul claro) é confusa, ENTÃO O USUÁRIO ANOTOU OS NÚMEROS CORRETOS AO LADO DA CALIGRAFIA AZUL (em tinta escura/preta).
-        
-REGRAS ABSOLUTAS:
-1. ANCORAGEM NOS NÚMEROS ANOTADOS: Sempre que você vir dois números juntos na mesma célula (ex: um borrão azul e um "47" preto bem legível do lado), CONFIE 100% NO NÚMERO ANOTADO (neste exemplo, 47). Ignore os rabiscos azuis se houver um número legível ao lado dele.
-2. ATENÇÃO ÀS COLUNAS:
-   - 'Saída Cliente QTD': É a primeira coluna de números. Extraia isso como o valor "enviado".
-   - A coluna do meio ("Entrada Lavanderia") geralmente ESTÁ VAZIA. Pule ela!
-   - 'Saída Lavanderia': É a terceira coluna de números. Extraia isso como o valor "devolvido".
-3. A DATA DA GUIA: Tente ler a "Data" no cabeçalho (ex: 02, 03, 26). Se estiver confuso lá em cima, olhe no rodapé no quadro azul "CONTROLE DE COLETA", a data está mais clara lá. Formate a saída SEMPRE como DD/MM/AAAA (ex: 02/03/2026).
-4. ITENS ESCRITOS À MÃO: Inclua na leitura os itens que foram adicionados à caneta na descrição, como "Peneira". E note que existe "Toalha de Rosto" e "Toalha de Rosto Piscina".
-5. FORMATO DE SAÍDA: OBRIGATORIAMENTE gere apenas um JSON válido, sem texto antes ou depois, sem \`\`\`json. Se a linha estiver vazia, coloque 0.
+        // O SUPER PROMPT TREINADO
+        const promptEspecialista = `Você é um analista de dados de hotel. O usuário fotografou uma GUIA DE REMESSA de lavanderia tratada com um filtro preto e branco.
+A caligrafia original era péssima, então O USUÁRIO ESCREVEU OS NÚMEROS CORRETOS BEM CLAROS E FORTES AO LADO DE CADA LINHA. 
 
-Use EXATAMENTE este molde JSON:
+REGRAS OBRIGATÓRIAS:
+1. IGNORE OS RABISCOS FRACOS. Leia EXCLUSIVAMENTE os números escuros, grossos e legíveis que o usuário anotou na linha.
+2. MAPEAMENTO:
+   - Primeira coluna de números ('Saída Cliente') = o que FOI para lavar (chave "enviado").
+   - Coluna do meio ('Entrada Lavanderia') = ESTÁ VAZIA. Pule!
+   - Terceira coluna de números ('Saída Lavanderia') = o que VOLTOU lavado (chave "devolvido").
+3. DATA: Encontre a data da guia (topo ou rodapé) e coloque no formato DD/MM/AAAA.
+4. RESPOSTA: Retorne APENAS E EXCLUSIVAMENTE o JSON abaixo, preenchendo os "0" com os números reais encontrados. Se não achar o número na linha, mantenha 0.
+
 {
-  "data_guia": "DD/MM/AAAA",
+  "data_guia": "00/00/0000",
   "itens": [
     {"item": "Fronha", "enviado": 0, "devolvido": 0},
     {"item": "Lençol Casal", "enviado": 0, "devolvido": 0},
@@ -219,6 +225,7 @@ Use EXATAMENTE este molde JSON:
                 },
                 body: JSON.stringify({
                     model: "meta-llama/llama-4-scout-17b-16e-instruct",
+                    response_format: { type: "json_object" }, // FORÇA A IA A RESPONDER SÓ JSON (Trava anti-erro)
                     messages: [
                         {
                             role: "user",
@@ -228,7 +235,7 @@ Use EXATAMENTE este molde JSON:
                             ]
                         }
                     ],
-                    temperature: 0.0 // Mudado para 0 para focar estritamente na leitura visual (sem invenções)
+                    temperature: 0.0 // O NÍVEL ZERO FAZ ELA VIRAR UM ROBÔ EXATO, SEM INVENTAR NADA
                 })
             });
 
@@ -240,17 +247,15 @@ Use EXATAMENTE este molde JSON:
             const result = await response.json();
             let textResponse = result.choices[0].message.content;
             
-            // Limpeza bruta de Markdown que a IA teima em mandar
             textResponse = textResponse.replace(/```json/gi, "").replace(/```/g, "").trim();
             
             let jsonLido;
             try {
                 jsonLido = JSON.parse(textResponse);
             } catch (parseError) {
-                throw new Error("Falha ao interpretar a tabela. Retorno da IA: " + textResponse);
+                throw new Error("Falha ao interpretar a tabela. Tente enviar a foto novamente.");
             }
 
-            // Atribuição de dados
             dadosAtuais = jsonLido.itens || jsonLido;
             
             const inputData = document.getElementById('data-remessa-input');
