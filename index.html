@@ -18,7 +18,7 @@
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px 20px; text-align: center; background-color: #f8fafc; transition: 0.3s; }
         input[type="file"] { display: none; }
         
-        /* Ajuste de Botões */
+        /* Botões */
         .btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 15px; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 400px; color: white; transition: 0.2s;}
         .btn-primary { background-color: var(--primary); }
@@ -32,10 +32,18 @@
         .info-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
         .input-header { width: 100%; max-width: 140px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-weight: bold; color: var(--dark); text-align: center; }
         
-        /* Estilo da Imagem da Guia no Relatório */
-        .preview-container { text-align: center; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; }
-        .preview-img { max-width: 100%; max-height: 350px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: contain; }
+        /* Imagem com Zoom */
+        .preview-container { text-align: center; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; position: relative; }
+        .preview-img { max-width: 100%; height: 250px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: contain; cursor: zoom-in; transition: 0.3s; }
+        .preview-img:hover { opacity: 0.8; }
+        .zoom-hint { font-size: 12px; color: var(--primary); font-weight: bold; margin-top: 5px; display: block; cursor: pointer; }
         
+        /* Tela Cheia (Modal) para o Zoom */
+        .modal { display: none; position: fixed; z-index: 1000; padding-top: 40px; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); overflow: auto; }
+        .modal-content { margin: auto; display: block; max-width: 95%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
+        .close-modal { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 40px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .close-modal:hover { color: #bbb; }
+
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
         th { background-color: #f8fafc; color: var(--text-light); font-size: 12px; text-transform: uppercase; }
@@ -53,10 +61,15 @@
 </head>
 <body>
 
+<div id="image-modal" class="modal" onclick="fecharZoom()">
+    <span class="close-modal">&times;</span>
+    <img class="modal-content" id="img-zoomed">
+</div>
+
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Motor Llama 4 (Edição Fácil + Imagem na Tela)</p>
+        <p class="subtitle">Com Zoom e Download Turbinado</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
@@ -86,11 +99,12 @@
 
         <div class="preview-container">
             <span class="info-label" style="display:block; margin-bottom:8px;">Imagem Escaneada da Guia</span>
-            <img id="imagem-guia-relatorio" class="preview-img" src="" alt="Guia de Lavanderia">
+            <img id="imagem-guia-relatorio" class="preview-img" src="" alt="Guia de Lavanderia" onclick="abrirZoom()">
+            <span class="zoom-hint" onclick="abrirZoom()">🔍 Clique na foto para AUMENTAR</span>
         </div>
 
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Modo de Revisão:</strong> Compare a foto acima com a tabela. Digite os números direto nas caixas (salvamento rápido).
+            ⚠️ <strong>Modo de Revisão:</strong> Compare a foto acima com a tabela. Digite os números direto nas caixas.
         </div>
 
         <div style="overflow-x: auto;">
@@ -111,17 +125,15 @@
 
     <div class="btn-group" id="action-buttons" style="display: none;">
         <button id="save-btn" class="btn btn-success" style="padding: 16px;" onclick="salvarEstoqueNaNuvem()">☁️ Confirmar e Salvar no Banco</button>
-        <button id="download-btn" class="btn btn-primary" style="display: none;" onclick="baixarJPG()">📥 Baixar Relatório Completo (JPG)</button>
+        <button id="download-btn" class="btn btn-primary" onclick="baixarJPG()">📥 Baixar Relatório Completo (JPG)</button>
         <button id="clear-btn" class="btn btn-danger" onclick="limparDados()">🗑️ Apagar Dados e Recomeçar</button>
     </div>
 
 </div>
 
 <script>
-    // CHAVE DA GROQ
     const GROQ_API_KEY = "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";
 
-    // CHAVES DO FIREBASE
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
         authDomain: "lavanderia-hoteis.firebaseapp.com",
@@ -138,6 +150,16 @@
     let estoqueAcumulado = {};
     let imagemBase64 = "";
     let imagemCompletaComCabecalho = "";
+
+    // FUNÇÕES DE ZOOM DA FOTO
+    function abrirZoom() {
+        document.getElementById('image-modal').style.display = "block";
+        document.getElementById('img-zoomed').src = imagemCompletaComCabecalho;
+    }
+
+    function fecharZoom() {
+        document.getElementById('image-modal').style.display = "none";
+    }
 
     function mostrarErro(mensagem, erroTecnico = "") {
         const debugBox = document.getElementById('debug-log');
@@ -159,8 +181,8 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1200;
-                    const MAX_HEIGHT = 1600;
+                    const MAX_WIDTH = 1400; // Resolução ainda maior para o zoom ficar excelente
+                    const MAX_HEIGHT = 1800;
                     let width = img.width;
                     let height = img.height;
 
@@ -174,11 +196,9 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Salva a imagem para a IA e para exibir no relatório
-                    imagemCompletaComCabecalho = canvas.toDataURL('image/jpeg', 0.8);
+                    imagemCompletaComCabecalho = canvas.toDataURL('image/jpeg', 0.85);
                     imagemBase64 = imagemCompletaComCabecalho.split(',')[1];
                     
-                    // Coloca a foto na tela de relatório antecipadamente
                     document.getElementById('imagem-guia-relatorio').src = imagemCompletaComCabecalho;
 
                     document.getElementById('file-name').textContent = "Imagem pronta! Pode clicar em Analisar.";
@@ -204,17 +224,18 @@
             console.warn("Firebase não acessado, iniciando estoque zerado.");
         }
 
-        const promptEspecialista = `Você é um assistente de hotel. O usuário fotografou uma guia de lavanderia.
-A caligrafia azul claro é antiga e falha. O usuário escreveu os NÚMEROS CORRETOS com caneta grossa e escura ao lado deles.
+        const promptEspecialista = `Você é um especialista em extração de dados de romaneios de lavanderia preenchidos à mão. A caligrafia original (em azul claro) é confusa, ENTÃO O USUÁRIO ANOTOU OS NÚMEROS CORRETOS AO LADO DA CALIGRAFIA AZUL (em tinta escura/preta).
+        
+REGRAS ABSOLUTAS:
+1. ANCORAGEM NOS NÚMEROS ANOTADOS: Sempre que você vir dois números juntos na mesma célula (ex: um borrão azul e um "47" preto bem legível do lado), CONFIE 100% NO NÚMERO ANOTADO (neste exemplo, 47). Ignore os rabiscos azuis se houver um número legível ao lado dele.
+2. ATENÇÃO ÀS COLUNAS:
+   - 'Saída Cliente QTD': É a primeira coluna de números. Extraia isso como o valor "enviado".
+   - A coluna do meio ("Entrada Lavanderia") geralmente ESTÁ VAZIA. Pule ela!
+   - 'Saída Lavanderia': É a terceira coluna de números. Extraia isso como o valor "devolvido".
+3. A DATA DA GUIA: Tente ler a "Data" no cabeçalho. Formate a saída SEMPRE como DD/MM/AAAA.
+4. FORMATO DE SAÍDA: OBRIGATORIAMENTE gere apenas um JSON válido, sem texto antes ou depois. Se a linha estiver vazia, coloque 0.
 
-TAREFA:
-1. Na coluna "Saída Cliente QTD" (a 1ª coluna de números), pegue o valor e chame de "enviado".
-2. Ignore totalmente a coluna do meio ("Entrada Lavanderia"). Ela não importa.
-3. Na coluna "Saída Lavanderia" (a 3ª coluna de números), pegue o valor e chame de "devolvido".
-4. Confie APENAS nos números escuros anotados pelo usuário.
-5. Extraia a data da guia.
-
-Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia ou com traço, coloque 0:
+Use EXATAMENTE este molde JSON:
 {
   "data_guia": "DD/MM/AAAA",
   "itens": [
@@ -278,9 +299,14 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia ou 
             }
 
             renderizarTabela(false);
+            
+            // TROCA DE TELAS E EXIBIÇÃO DE TODOS OS BOTÕES AO MESMO TEMPO
             document.getElementById('upload-card').style.display = 'none';
             document.getElementById('area-relatorio').style.display = 'block';
-            document.getElementById('action-buttons').style.display = 'flex';
+            document.getElementById('action-buttons').style.display = 'flex'; // Exibe a área dos botões
+            document.getElementById('save-btn').style.display = 'inline-flex';
+            document.getElementById('download-btn').style.display = 'inline-flex'; // Botão de Baixar liberado logo de cara!
+            document.getElementById('clear-btn').style.display = 'inline-flex';
 
         } catch (error) {
             mostrarErro("A comunicação com a Inteligência falhou.", error.message);
@@ -312,7 +338,6 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia ou 
         });
     }
 
-    // ATUALIZAÇÃO SILENCIOSA: Agora você digita sem o sistema apagar e recriar as caixinhas!
     function atualizarValor(index, campo, novoValor) {
         dadosAtuais[index][campo] = novoValor === "" ? 0 : parseInt(novoValor);
         
@@ -335,17 +360,16 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia ou 
 
     function formatarNumero(num) { return num > 0 ? "+" + num : (num === 0 ? "OK" : num); }
 
-    // BOTÃO DE APAGAR DADOS E RECOMEÇAR
     function limparDados() {
-        if(confirm("Tem certeza que deseja limpar tudo e recomeçar do zero? Os dados não salvos serão perdidos.")) {
-            location.reload(); // Isso limpa o navegador perfeitamente
+        if(confirm("Tem certeza que deseja apagar os dados da tela e recomeçar a leitura?")) {
+            location.reload(); 
         }
     }
 
     async function salvarEstoqueNaNuvem() {
         const conferente = document.getElementById('nome-conferente').value;
         const dataInput = document.getElementById('data-remessa-input').value;
-        if(conferente.trim() === "") { alert("Preencha o Nome do Conferente."); return; }
+        if(conferente.trim() === "") { alert("Preencha o Nome do Conferente antes de salvar."); return; }
 
         const btnSave = document.getElementById('save-btn');
         btnSave.textContent = "⏳ Salvando no Banco..."; btnSave.disabled = true;
@@ -363,10 +387,8 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia ou 
             document.getElementById('data-remessa-input').parentElement.innerHTML = `<span class="info-label">Data</span><span class="info-value" id="data-remessa-fixa">${dataInput}</span>`;
             document.getElementById('nome-conferente').parentElement.innerHTML = `<span class="info-label">Conferente</span><span class="info-value">${conferente}</span>`;
 
-            btnSave.style.display = 'none';
-            renderizarTabela(true); // Trava no modo leitura
-            document.getElementById('download-btn').style.display = 'block'; // Mostra o botão de JPG
-            document.getElementById('clear-btn').style.marginTop = "10px";
+            btnSave.style.display = 'none'; // Esconde o salvar
+            renderizarTabela(true); // Trava os campos
         } catch (error) {
             alert("Erro ao salvar no banco de dados.");
             btnSave.textContent = "☁️ Confirmar e Salvar no Banco"; btnSave.disabled = false;
@@ -374,22 +396,25 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia ou 
     }
 
     function baixarJPG() {
+        // Fechar o zoom se ele estiver aberto para não bugar o print
+        fecharZoom();
+        
         const area = document.getElementById('area-relatorio');
         
-        // Remove bordas temporariamente para o JPG ficar limpo
+        // Formata a área para gerar uma imagem bonita e sem sobras
         area.style.border = "none"; 
         area.style.boxShadow = "none"; 
         area.style.padding = "30px"; 
         area.style.backgroundColor = "#ffffff";
         
-        // A mágica que tira a foto da tela inteira (Incluindo a foto da guia)
+        // Comando mágico que tira "print" do relatório inteiro
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Relatorio_HIT_${new Date().getTime()}.jpg`;
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
             
-            // Retorna a estilização ao normal na tela
+            // Devolve o visual do sistema ao normal
             area.style.border = ""; 
             area.style.boxShadow = ""; 
             area.style.padding = "24px"; 
