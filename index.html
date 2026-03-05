@@ -38,7 +38,7 @@
         .preview-img:hover { opacity: 0.8; }
         .zoom-hint { font-size: 12px; color: var(--primary); font-weight: bold; margin-top: 5px; display: block; cursor: pointer; }
         
-        .modal { display: none; position: fixed; z-index: 1000; padding-top: 40px; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); overflow: auto; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); overflow: auto; align-items: center; justify-content: center; padding-top: 40px; }
         .modal-content { margin: auto; display: block; max-width: 95%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
         .close-modal { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 40px; font-weight: bold; cursor: pointer; transition: 0.3s; }
         .close-modal:hover { color: #bbb; }
@@ -76,10 +76,14 @@
     <img class="modal-content" id="img-zoomed">
 </div>
 
-<div id="historico-modal" class="modal" style="background-color: rgba(0,0,0,0.85);">
-    <div class="modal-content" style="background-color: var(--bg-color); padding: 20px; max-width: 800px; height: 85vh; display: flex; flex-direction: column;">
-        <span onclick="fecharHistorico()" style="position: absolute; top: 10px; right: 20px; color: var(--dark); font-size: 35px; cursor: pointer;">&times;</span>
-        <h2 style="color: var(--dark); margin-top: 0; padding-bottom: 10px; border-bottom: 2px solid #cbd5e1;">📅 Histórico de Relatórios</h2>
+<div id="historico-modal" class="modal" style="background-color: rgba(0,0,0,0.85); padding-top: 0; display: none;" onclick="fecharHistoricoBackground(event)">
+    <div class="modal-content" style="background-color: var(--bg-color); padding: 20px; width: 95%; max-width: 800px; height: 85vh; display: flex; flex-direction: column; position: relative; margin-top: 5vh;" onclick="event.stopPropagation();">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
+            <h2 style="color: var(--dark); margin: 0; font-size: 20px;">📅 Histórico de Relatórios</h2>
+            <button onclick="fecharHistorico()" style="background-color: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">❌ Fechar</button>
+        </div>
+
         <div id="lista-historico" style="overflow-y: auto; flex: 1; padding-right: 5px;">
             </div>
     </div>
@@ -180,18 +184,27 @@
     let imagemCompletaComCabecalho = "";
 
     function abrirZoom() {
-        document.getElementById('image-modal').style.display = "block";
+        document.getElementById('image-modal').style.display = "flex";
         document.getElementById('img-zoomed').src = imagemCompletaComCabecalho;
     }
 
     function fecharZoom() { document.getElementById('image-modal').style.display = "none"; }
 
     function abrirHistorico() {
-        document.getElementById('historico-modal').style.display = "block";
+        document.getElementById('historico-modal').style.display = "flex";
         carregarHistorico();
     }
 
-    function fecharHistorico() { document.getElementById('historico-modal').style.display = "none"; }
+    function fecharHistorico() { 
+        document.getElementById('historico-modal').style.display = "none"; 
+    }
+    
+    function fecharHistoricoBackground(event) {
+        // Se a pessoa clicar no fundo preto, fecha a tela também
+        if (event.target.id === 'historico-modal') {
+            fecharHistorico();
+        }
+    }
 
     function mostrarErro(mensagem, erroTecnico = "") {
         const debugBox = document.getElementById('debug-log');
@@ -253,7 +266,6 @@
             if (docRef.exists) estoqueAcumulado = docRef.data();
         } catch (error) { console.warn("Firebase não acessado, iniciando estoque zerado."); }
 
-        // O NOVO PROMPT TOTALMENTE GENERALIZADO PARA NÃO PULAR O COBERTOR
         const promptEspecialista = `Você é um auditor especialista em extração de romaneios preenchidos à mão.
         
 REGRAS ABSOLUTAS E CRÍTICAS DE LEITURA LADO A LADO:
