@@ -17,15 +17,25 @@
         p.subtitle { text-align: center; color: var(--success); margin-top: -10px; margin-bottom: 20px; font-size: 14px; font-weight: bold; }
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px 20px; text-align: center; background-color: #f8fafc; transition: 0.3s; }
         input[type="file"] { display: none; }
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 300px; margin: 10px auto; color: white;}
+        
+        /* Ajuste de Botões */
+        .btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 15px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 400px; color: white; transition: 0.2s;}
         .btn-primary { background-color: var(--primary); }
         .btn-success { background-color: var(--success); }
         .btn-warning { background-color: var(--warning); }
+        .btn-danger { background-color: var(--danger); }
         .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
+        
         .info-panel { display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-items: center; background-color: #f8fafc; border-left: 4px solid var(--primary); padding: 15px; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
         .info-panel div { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
         .info-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
         .input-header { width: 100%; max-width: 140px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-weight: bold; color: var(--dark); text-align: center; }
+        
+        /* Estilo da Imagem da Guia no Relatório */
+        .preview-container { text-align: center; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; }
+        .preview-img { max-width: 100%; max-height: 350px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: contain; }
+        
         table { width: 100%; border-collapse: collapse; min-width: 600px; }
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
         th { background-color: #f8fafc; color: var(--text-light); font-size: 12px; text-transform: uppercase; }
@@ -46,14 +56,14 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Digitação Rápida Corrigida + IA Otimizada</p>
+        <p class="subtitle">Motor Llama 4 (Edição Fácil + Imagem na Tela)</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin: 15px 0;">Nenhuma imagem</div>
-            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto Rápido</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Lendo imagem colorida... Aguarde!</p>
+            <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled style="margin: 0 auto;">✨ Analisar Foto Rápido</button>
+            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">A IA está lendo a guia... Aguarde!</p>
             <div id="debug-log"></div>
         </div>
     </div>
@@ -74,8 +84,13 @@
             </div>
         </div>
 
+        <div class="preview-container">
+            <span class="info-label" style="display:block; margin-bottom:8px;">Imagem Escaneada da Guia</span>
+            <img id="imagem-guia-relatorio" class="preview-img" src="" alt="Guia de Lavanderia">
+        </div>
+
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Digitação Rápida Ativada:</strong> Agora você pode clicar nas caixas e digitar "46" direto sem o cursor sumir!
+            ⚠️ <strong>Modo de Revisão:</strong> Compare a foto acima com a tabela. Digite os números direto nas caixas (salvamento rápido).
         </div>
 
         <div style="overflow-x: auto;">
@@ -94,8 +109,12 @@
         </div>
     </div>
 
-    <button id="save-btn" class="btn btn-success" style="display: none; max-width: 400px; padding: 16px;" onclick="salvarEstoqueNaNuvem()">☁️ Confirmar e Salvar no Banco</button>
-    <button id="download-btn" class="btn btn-primary" style="display: none; max-width: 400px;" onclick="baixarJPG()">📥 Baixar Relatório (JPG)</button>
+    <div class="btn-group" id="action-buttons" style="display: none;">
+        <button id="save-btn" class="btn btn-success" style="padding: 16px;" onclick="salvarEstoqueNaNuvem()">☁️ Confirmar e Salvar no Banco</button>
+        <button id="download-btn" class="btn btn-primary" style="display: none;" onclick="baixarJPG()">📥 Baixar Relatório Completo (JPG)</button>
+        <button id="clear-btn" class="btn btn-danger" onclick="limparDados()">🗑️ Apagar Dados e Recomeçar</button>
+    </div>
+
 </div>
 
 <script>
@@ -118,6 +137,7 @@
     let dadosAtuais = [];
     let estoqueAcumulado = {};
     let imagemBase64 = "";
+    let imagemCompletaComCabecalho = "";
 
     function mostrarErro(mensagem, erroTecnico = "") {
         const debugBox = document.getElementById('debug-log');
@@ -131,7 +151,7 @@
         const file = document.getElementById('file-upload').files[0];
         if (file) {
             document.getElementById('file-name').textContent = "Arquivo: " + file.name;
-            document.getElementById('process-btn').disabled = false;
+            document.getElementById('process-btn').disabled = true;
             document.getElementById('debug-log').style.display = 'none';
             
             const reader = new FileReader();
@@ -152,12 +172,17 @@
                     canvas.width = width;
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
-                    
-                    // FILTRO DE CORES REMOVIDO: A imagem vai natural para a IA diferenciar a caneta da impressão azul.
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    imagemBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
+                    // Salva a imagem para a IA e para exibir no relatório
+                    imagemCompletaComCabecalho = canvas.toDataURL('image/jpeg', 0.8);
+                    imagemBase64 = imagemCompletaComCabecalho.split(',')[1];
+                    
+                    // Coloca a foto na tela de relatório antecipadamente
+                    document.getElementById('imagem-guia-relatorio').src = imagemCompletaComCabecalho;
+
                     document.getElementById('file-name').textContent = "Imagem pronta! Pode clicar em Analisar.";
+                    document.getElementById('process-btn').disabled = false;
                 }
                 img.src = event.target.result;
             }
@@ -179,17 +204,17 @@
             console.warn("Firebase não acessado, iniciando estoque zerado.");
         }
 
-        const promptEspecialista = `Você é um assistente de hotel. O usuário fotografou uma guia de lavanderia colorida.
-A caligrafia azul claro é antiga. O usuário escreveu os NÚMEROS CORRETOS com caneta grossa e escura ao lado deles.
+        const promptEspecialista = `Você é um assistente de hotel. O usuário fotografou uma guia de lavanderia.
+A caligrafia azul claro é antiga e falha. O usuário escreveu os NÚMEROS CORRETOS com caneta grossa e escura ao lado deles.
 
-TAREFA: Leia a tabela.
+TAREFA:
 1. Na coluna "Saída Cliente QTD" (a 1ª coluna de números), pegue o valor e chame de "enviado".
 2. Ignore totalmente a coluna do meio ("Entrada Lavanderia"). Ela não importa.
 3. Na coluna "Saída Lavanderia" (a 3ª coluna de números), pegue o valor e chame de "devolvido".
 4. Confie APENAS nos números escuros anotados pelo usuário.
 5. Extraia a data da guia.
 
-Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia, coloque 0:
+Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia ou com traço, coloque 0:
 {
   "data_guia": "DD/MM/AAAA",
   "itens": [
@@ -199,6 +224,7 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia, co
     {"item": "Toalha de Piso", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Banho", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Rosto", "enviado": 0, "devolvido": 0},
+    {"item": "Toalha de Rosto Piscina", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Banho Piscina", "enviado": 0, "devolvido": 0},
     {"item": "Colchão Acolchoado", "enviado": 0, "devolvido": 0},
     {"item": "Cobertor", "enviado": 0, "devolvido": 0},
@@ -251,10 +277,10 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia, co
                 inputData.value = hoje.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: '2-digit'});
             }
 
-            renderizarTabela(false); // Inicia no modo edição
+            renderizarTabela(false);
             document.getElementById('upload-card').style.display = 'none';
             document.getElementById('area-relatorio').style.display = 'block';
-            document.getElementById('save-btn').style.display = 'flex';
+            document.getElementById('action-buttons').style.display = 'flex';
 
         } catch (error) {
             mostrarErro("A comunicação com a Inteligência falhou.", error.message);
@@ -274,7 +300,6 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia, co
             if(modoLeitura) {
                 tr.innerHTML = `<td>${linha.item}</td><td><b>${linha.enviado}</b></td><td><b>${linha.devolvido}</b></td><td><span class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHoje)}</span></td><td class="acumulado-col"><span class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoFuturo)}</span></td>`;
             } else {
-                // Aqui está a MÁGICA da edição! Adicionamos IDs nas colunas de saldo para atualizá-las sem apagar a tabela.
                 tr.innerHTML = `
                     <td>${linha.item}</td>
                     <td><input type="number" value="${linha.enviado}" min="0" oninput="atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td>
@@ -287,17 +312,14 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia, co
         });
     }
 
-    // FUNÇÃO CORRIGIDA: Agora ela NÃO apaga a tabela, apenas atualiza os números do saldo em tempo real!
+    // ATUALIZAÇÃO SILENCIOSA: Agora você digita sem o sistema apagar e recriar as caixinhas!
     function atualizarValor(index, campo, novoValor) {
-        // Salva o novo número no array invisível
         dadosAtuais[index][campo] = novoValor === "" ? 0 : parseInt(novoValor);
         
-        // Recalcula a matemática
         const saldoHoje = dadosAtuais[index].devolvido - dadosAtuais[index].enviado;
         const saldoHistorico = estoqueAcumulado[dadosAtuais[index].item] || 0;
         const saldoFuturo = saldoHistorico + saldoHoje;
 
-        // Atualiza APENAS a "etiqueta" do saldo daquela linha específica, sem roubar o cursor do mouse!
         const spanSaldo = document.getElementById(`saldo-${index}`);
         if(spanSaldo) {
             spanSaldo.textContent = formatarNumero(saldoHoje);
@@ -312,6 +334,13 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia, co
     }
 
     function formatarNumero(num) { return num > 0 ? "+" + num : (num === 0 ? "OK" : num); }
+
+    // BOTÃO DE APAGAR DADOS E RECOMEÇAR
+    function limparDados() {
+        if(confirm("Tem certeza que deseja limpar tudo e recomeçar do zero? Os dados não salvos serão perdidos.")) {
+            location.reload(); // Isso limpa o navegador perfeitamente
+        }
+    }
 
     async function salvarEstoqueNaNuvem() {
         const conferente = document.getElementById('nome-conferente').value;
@@ -335,8 +364,9 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia, co
             document.getElementById('nome-conferente').parentElement.innerHTML = `<span class="info-label">Conferente</span><span class="info-value">${conferente}</span>`;
 
             btnSave.style.display = 'none';
-            renderizarTabela(true); // Trava a tabela como modo leitura após salvar
-            document.getElementById('download-btn').style.display = 'flex';
+            renderizarTabela(true); // Trava no modo leitura
+            document.getElementById('download-btn').style.display = 'block'; // Mostra o botão de JPG
+            document.getElementById('clear-btn').style.marginTop = "10px";
         } catch (error) {
             alert("Erro ao salvar no banco de dados.");
             btnSave.textContent = "☁️ Confirmar e Salvar no Banco"; btnSave.disabled = false;
@@ -345,13 +375,25 @@ Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia, co
 
     function baixarJPG() {
         const area = document.getElementById('area-relatorio');
-        area.style.border = "none"; area.style.boxShadow = "none"; area.style.padding = "30px"; area.style.backgroundColor = "#ffffff";
+        
+        // Remove bordas temporariamente para o JPG ficar limpo
+        area.style.border = "none"; 
+        area.style.boxShadow = "none"; 
+        area.style.padding = "30px"; 
+        area.style.backgroundColor = "#ffffff";
+        
+        // A mágica que tira a foto da tela inteira (Incluindo a foto da guia)
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
             link.download = `Relatorio_HIT_${new Date().getTime()}.jpg`;
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
-            setTimeout(() => { location.reload(); }, 2000);
+            
+            // Retorna a estilização ao normal na tela
+            area.style.border = ""; 
+            area.style.boxShadow = ""; 
+            area.style.padding = "24px"; 
+            area.style.backgroundColor = "var(--card-bg)";
         });
     }
 </script>
