@@ -50,7 +50,6 @@
         th { background-color: #f8fafc; color: var(--text-light); font-size: 12px; text-transform: uppercase; }
         td:first-child { text-align: left; font-weight: 600; color: var(--dark); }
         
-        /* Estilo da Linha de Total */
         tfoot tr { background-color: #e2e8f0; border-top: 2px solid #94a3b8; }
         tfoot td { padding: 14px 8px; text-align: center; font-size: 14px; font-weight: bold; color: var(--dark); }
         tfoot td:first-child { text-align: right; text-transform: uppercase; padding-right: 15px; }
@@ -76,14 +75,14 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Com Botão de Compartilhar Relatório</p>
+        <p class="subtitle">Motor de Leitura Flexível Ativado</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin: 15px 0;">Nenhuma imagem</div>
             <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled style="margin: 0 auto;">✨ Analisar Foto Rápido</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">A IA está lendo a guia... Aguarde!</p>
+            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">A IA está lendo a guia com atenção... Aguarde!</p>
             <div id="debug-log"></div>
         </div>
     </div>
@@ -111,7 +110,7 @@
         </div>
 
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Modo de Revisão:</strong> Compare a foto acima com a tabela. Digite os números direto nas caixas.
+            ⚠️ <strong>Modo de Revisão:</strong> Compare a foto acima com a tabela. Digite os números direto nas caixas (sem travamentos).
         </div>
 
         <div style="overflow-x: auto;">
@@ -133,9 +132,7 @@
 
     <div class="btn-group" id="action-buttons" style="display: none;">
         <button id="save-btn" class="btn btn-success" style="padding: 16px;" onclick="salvarEstoqueNaNuvem()">☁️ Confirmar e Salvar no Banco</button>
-        
         <button id="share-btn" class="btn btn-share" style="display: none;" onclick="compartilharRelatorio()">📲 Compartilhar no WhatsApp/Email</button>
-        
         <button id="download-btn" class="btn btn-primary" onclick="baixarJPG()">📥 Baixar Relatório Completo (JPG)</button>
         <button id="clear-btn" class="btn btn-danger" onclick="limparDados()">🗑️ Apagar Dados e Recomeçar</button>
     </div>
@@ -234,18 +231,20 @@
             console.warn("Firebase não acessado, iniciando estoque zerado.");
         }
 
-        const promptEspecialista = `Você é um especialista em extração de dados de romaneios de lavanderia preenchidos à mão. A caligrafia original (em azul claro) é confusa, ENTÃO O USUÁRIO ANOTOU OS NÚMEROS CORRETOS AO LADO DA CALIGRAFIA AZUL (em tinta escura/preta).
-        
-REGRAS ABSOLUTAS:
-1. ANCORAGEM NOS NÚMEROS ANOTADOS: Sempre que você vir dois números juntos na mesma célula (ex: um borrão azul e um "47" preto bem legível do lado), CONFIE 100% NO NÚMERO ANOTADO (neste exemplo, 47). Ignore os rabiscos azuis se houver um número legível ao lado dele.
-2. ATENÇÃO ÀS COLUNAS:
-   - 'Saída Cliente QTD': É a primeira coluna de números. Extraia isso como o valor "enviado".
-   - A coluna do meio ("Entrada Lavanderia") geralmente ESTÁ VAZIA. Pule ela!
-   - 'Saída Lavanderia': É a terceira coluna de números. Extraia isso como o valor "devolvido".
-3. A DATA DA GUIA: Tente ler a "Data" no cabeçalho. Formate a saída SEMPRE como DD/MM/AAAA.
-4. FORMATO DE SAÍDA: OBRIGATORIAMENTE gere apenas um JSON válido, sem texto antes ou depois. Se a linha estiver vazia, coloque 0.
+        // NOVO PROMPT INTELIGENTE (Flexível para as duas canetas)
+        const promptEspecialista = `Você é um auditor de lavanderia. Extraia os dados da tabela preenchida à mão na imagem.
 
-Use EXATAMENTE este molde JSON:
+REGRAS DE LEITURA (CRÍTICO):
+1. A caligrafia original da guia é em tinta azul clara. Em algumas linhas, o usuário pode ter reescrito o número ao lado (ancoragem) com uma caneta mais escura/grossa para facilitar.
+2. SE houver dois números na mesma célula (ex: um borrão azul e um '47' escuro do lado), confie APENAS no número escuro/legível.
+3. SE houver APENAS a caligrafia azul original na célula (como o número '1' na linha Toalha de Banho Piscina), VOCÊ DEVE LER A CANETA AZUL! Não deixe zerado se houver qualquer número escrito, não importa a cor.
+4. COLUNAS:
+   - 'Saída Cliente QTD' (1ª coluna de números) = "enviado"
+   - 'Entrada Lavanderia QTD' (coluna do meio) = IGNORE.
+   - 'Saída Lavanderia' (3ª coluna de números) = "devolvido"
+5. DATA: Extraia a data no topo (ex: 01 03 26 -> 01/03/2026) ou no quadro do rodapé.
+
+Responda APENAS com o JSON abaixo, preenchendo os "0" com os valores reais encontrados. Não adicione texto fora do JSON.
 {
   "data_guia": "DD/MM/AAAA",
   "itens": [
@@ -255,8 +254,8 @@ Use EXATAMENTE este molde JSON:
     {"item": "Toalha de Piso", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Banho", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Rosto", "enviado": 0, "devolvido": 0},
-    {"item": "Toalha de Rosto Piscina", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Banho Piscina", "enviado": 0, "devolvido": 0},
+    {"item": "Toalha de Rosto Piscina", "enviado": 0, "devolvido": 0},
     {"item": "Colchão Acolchoado", "enviado": 0, "devolvido": 0},
     {"item": "Cobertor", "enviado": 0, "devolvido": 0},
     {"item": "Peneira", "enviado": 0, "devolvido": 0},
@@ -435,7 +434,6 @@ Use EXATAMENTE este molde JSON:
             btnSave.style.display = 'none'; 
             renderizarTabela(true); 
             
-            // EXIBE O BOTÃO DE COMPARTILHAR APÓS SALVAR
             document.getElementById('share-btn').style.display = 'inline-flex';
 
         } catch (error) {
@@ -444,9 +442,8 @@ Use EXATAMENTE este molde JSON:
         }
     }
 
-    // NOVA FUNÇÃO: Compartilhar Relatório nativamente pelo celular (WhatsApp, Email, etc)
     function compartilharRelatorio() {
-        fecharZoom(); // Segurança
+        fecharZoom(); 
         
         const btnShare = document.getElementById('share-btn');
         const originalText = btnShare.innerHTML;
@@ -464,18 +461,15 @@ Use EXATAMENTE este molde JSON:
         if (avisoAmarelo) avisoAmarelo.style.display = 'none';
         
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
-            // Devolve o visual do sistema ao normal na tela
             area.style.border = ""; 
             area.style.boxShadow = ""; 
             area.style.padding = "24px"; 
             area.style.backgroundColor = "var(--card-bg)";
             if (avisoAmarelo) avisoAmarelo.style.display = 'block';
 
-            // Converter a imagem para um arquivo real suportado pelo WhatsApp/Email
             canvas.toBlob(async function(blob) {
                 const file = new File([blob], `Relatorio_HIT_${new Date().getTime()}.jpg`, { type: 'image/jpeg' });
                 
-                // Tenta abrir a janela de compartilhamento nativa do sistema operacional
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
                     try {
                         await navigator.share({
@@ -487,7 +481,7 @@ Use EXATAMENTE este molde JSON:
                         console.log('Compartilhamento cancelado ou falhou', error);
                     }
                 } else {
-                    alert("Seu navegador ou dispositivo não suporta o envio direto. Por favor, use o botão azul 'Baixar Relatório' e envie o arquivo pela sua galeria.");
+                    alert("Seu dispositivo não suporta o envio direto. Por favor, use o botão azul 'Baixar Relatório'.");
                 }
 
                 btnShare.innerHTML = originalText;
