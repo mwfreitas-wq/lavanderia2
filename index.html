@@ -14,7 +14,7 @@
         .container { max-width: 900px; margin: auto; }
         .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 20px; }
         h1 { color: var(--dark); text-align: center; margin-top: 0; font-size: 24px; font-weight: 700; }
-        p.subtitle { text-align: center; color: var(--primary); margin-top: -10px; margin-bottom: 20px; font-size: 14px; font-weight: bold; }
+        p.subtitle { text-align: center; color: var(--success); margin-top: -10px; margin-bottom: 20px; font-size: 14px; font-weight: bold; }
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px 20px; text-align: center; background-color: #f8fafc; transition: 0.3s; }
         input[type="file"] { display: none; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 300px; margin: 10px auto; color: white;}
@@ -30,7 +30,8 @@
         th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
         th { background-color: #f8fafc; color: var(--text-light); font-size: 12px; text-transform: uppercase; }
         td:first-child { text-align: left; font-weight: 600; color: var(--dark); }
-        input[type="number"] { width: 45px; padding: 8px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-weight: bold; color: var(--dark); }
+        input[type="number"] { width: 55px; padding: 8px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; font-weight: bold; color: var(--primary); background-color: #f8fafc; }
+        input[type="number"]:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 13px; }
         .negative { color: var(--danger); background-color: #fef2f2; }
         .positive { color: var(--success); background-color: #ecfdf5; }
@@ -45,14 +46,14 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Com Filtro de Escaneamento (Raio-X)</p>
+        <p class="subtitle">Digitação Rápida Corrigida + IA Otimizada</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin: 15px 0;">Nenhuma imagem</div>
             <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled>✨ Analisar Foto Rápido</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Aplicando filtro de Raio-X e lendo números... Aguarde!</p>
+            <p id="loading" style="color: var(--warning); font-weight: bold; margin-top: 15px;">Lendo imagem colorida... Aguarde!</p>
             <div id="debug-log"></div>
         </div>
     </div>
@@ -74,7 +75,7 @@
         </div>
 
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Revise a Leitura:</strong> A IA priorizou os números escuros anotados por você. Revise a tabela abaixo.
+            ⚠️ <strong>Digitação Rápida Ativada:</strong> Agora você pode clicar nas caixas e digitar "46" direto sem o cursor sumir!
         </div>
 
         <div style="overflow-x: auto;">
@@ -98,14 +99,10 @@
 </div>
 
 <script>
-    // ==========================================
-    // CHAVE DA GROQ ATIVA
-    // ==========================================
+    // CHAVE DA GROQ
     const GROQ_API_KEY = "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";
 
-    // ==========================================
     // CHAVES DO FIREBASE
-    // ==========================================
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
         authDomain: "lavanderia-hoteis.firebaseapp.com",
@@ -134,7 +131,7 @@
         const file = document.getElementById('file-upload').files[0];
         if (file) {
             document.getElementById('file-name').textContent = "Arquivo: " + file.name;
-            document.getElementById('process-btn').disabled = true;
+            document.getElementById('process-btn').disabled = false;
             document.getElementById('debug-log').style.display = 'none';
             
             const reader = new FileReader();
@@ -156,13 +153,11 @@
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     
-                    // 🪄 MÁGICA: Filtro Raio-X! Deixa em P&B e estoura o contraste para apagar os rabiscos azuis e deixar sua caneta preta brilhando!
-                    ctx.filter = 'grayscale(100%) contrast(150%) brightness(110%)';
+                    // FILTRO DE CORES REMOVIDO: A imagem vai natural para a IA diferenciar a caneta da impressão azul.
                     ctx.drawImage(img, 0, 0, width, height);
 
                     imagemBase64 = canvas.toDataURL('image/jpeg', 0.8).split(',')[1];
-                    document.getElementById('file-name').textContent = "Imagem limpa e pronta! Pode clicar em Analisar.";
-                    document.getElementById('process-btn').disabled = false;
+                    document.getElementById('file-name').textContent = "Imagem pronta! Pode clicar em Analisar.";
                 }
                 img.src = event.target.result;
             }
@@ -184,21 +179,19 @@
             console.warn("Firebase não acessado, iniciando estoque zerado.");
         }
 
-        // O SUPER PROMPT TREINADO
-        const promptEspecialista = `Você é um analista de dados de hotel. O usuário fotografou uma GUIA DE REMESSA de lavanderia tratada com um filtro preto e branco.
-A caligrafia original era péssima, então O USUÁRIO ESCREVEU OS NÚMEROS CORRETOS BEM CLAROS E FORTES AO LADO DE CADA LINHA. 
+        const promptEspecialista = `Você é um assistente de hotel. O usuário fotografou uma guia de lavanderia colorida.
+A caligrafia azul claro é antiga. O usuário escreveu os NÚMEROS CORRETOS com caneta grossa e escura ao lado deles.
 
-REGRAS OBRIGATÓRIAS:
-1. IGNORE OS RABISCOS FRACOS. Leia EXCLUSIVAMENTE os números escuros, grossos e legíveis que o usuário anotou na linha.
-2. MAPEAMENTO:
-   - Primeira coluna de números ('Saída Cliente') = o que FOI para lavar (chave "enviado").
-   - Coluna do meio ('Entrada Lavanderia') = ESTÁ VAZIA. Pule!
-   - Terceira coluna de números ('Saída Lavanderia') = o que VOLTOU lavado (chave "devolvido").
-3. DATA: Encontre a data da guia (topo ou rodapé) e coloque no formato DD/MM/AAAA.
-4. RESPOSTA: Retorne APENAS E EXCLUSIVAMENTE o JSON abaixo, preenchendo os "0" com os números reais encontrados. Se não achar o número na linha, mantenha 0.
+TAREFA: Leia a tabela.
+1. Na coluna "Saída Cliente QTD" (a 1ª coluna de números), pegue o valor e chame de "enviado".
+2. Ignore totalmente a coluna do meio ("Entrada Lavanderia"). Ela não importa.
+3. Na coluna "Saída Lavanderia" (a 3ª coluna de números), pegue o valor e chame de "devolvido".
+4. Confie APENAS nos números escuros anotados pelo usuário.
+5. Extraia a data da guia.
 
+Responda ESTRITAMENTE com o JSON abaixo preenchido. Se a linha estiver vazia, coloque 0:
 {
-  "data_guia": "00/00/0000",
+  "data_guia": "DD/MM/AAAA",
   "itens": [
     {"item": "Fronha", "enviado": 0, "devolvido": 0},
     {"item": "Lençol Casal", "enviado": 0, "devolvido": 0},
@@ -206,7 +199,6 @@ REGRAS OBRIGATÓRIAS:
     {"item": "Toalha de Piso", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Banho", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Rosto", "enviado": 0, "devolvido": 0},
-    {"item": "Toalha de Rosto Piscina", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Banho Piscina", "enviado": 0, "devolvido": 0},
     {"item": "Colchão Acolchoado", "enviado": 0, "devolvido": 0},
     {"item": "Cobertor", "enviado": 0, "devolvido": 0},
@@ -225,7 +217,7 @@ REGRAS OBRIGATÓRIAS:
                 },
                 body: JSON.stringify({
                     model: "meta-llama/llama-4-scout-17b-16e-instruct",
-                    response_format: { type: "json_object" }, // FORÇA A IA A RESPONDER SÓ JSON (Trava anti-erro)
+                    response_format: { type: "json_object" },
                     messages: [
                         {
                             role: "user",
@@ -235,7 +227,7 @@ REGRAS OBRIGATÓRIAS:
                             ]
                         }
                     ],
-                    temperature: 0.0 // O NÍVEL ZERO FAZ ELA VIRAR UM ROBÔ EXATO, SEM INVENTAR NADA
+                    temperature: 0.0 
                 })
             });
 
@@ -246,16 +238,9 @@ REGRAS OBRIGATÓRIAS:
 
             const result = await response.json();
             let textResponse = result.choices[0].message.content;
-            
             textResponse = textResponse.replace(/```json/gi, "").replace(/```/g, "").trim();
             
-            let jsonLido;
-            try {
-                jsonLido = JSON.parse(textResponse);
-            } catch (parseError) {
-                throw new Error("Falha ao interpretar a tabela. Tente enviar a foto novamente.");
-            }
-
+            let jsonLido = JSON.parse(textResponse);
             dadosAtuais = jsonLido.itens || jsonLido;
             
             const inputData = document.getElementById('data-remessa-input');
@@ -266,7 +251,7 @@ REGRAS OBRIGATÓRIAS:
                 inputData.value = hoje.toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: '2-digit'});
             }
 
-            renderizarTabela();
+            renderizarTabela(false); // Inicia no modo edição
             document.getElementById('upload-card').style.display = 'none';
             document.getElementById('area-relatorio').style.display = 'block';
             document.getElementById('save-btn').style.display = 'flex';
@@ -289,15 +274,41 @@ REGRAS OBRIGATÓRIAS:
             if(modoLeitura) {
                 tr.innerHTML = `<td>${linha.item}</td><td><b>${linha.enviado}</b></td><td><b>${linha.devolvido}</b></td><td><span class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHoje)}</span></td><td class="acumulado-col"><span class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoFuturo)}</span></td>`;
             } else {
-                tr.innerHTML = `<td>${linha.item}</td><td><input type="number" value="${linha.enviado}" min="0" oninput="atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td><td><input type="number" value="${linha.devolvido}" min="0" oninput="atualizarValor(${index}, 'devolvido', this.value)" onfocus="this.select()"></td><td><span id="saldo-${index}" class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHoje)}</span></td><td class="acumulado-col"><span id="acumulado-${index}" class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoFuturo)}</span></td>`;
+                // Aqui está a MÁGICA da edição! Adicionamos IDs nas colunas de saldo para atualizá-las sem apagar a tabela.
+                tr.innerHTML = `
+                    <td>${linha.item}</td>
+                    <td><input type="number" value="${linha.enviado}" min="0" oninput="atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td>
+                    <td><input type="number" value="${linha.devolvido}" min="0" oninput="atualizarValor(${index}, 'devolvido', this.value)" onfocus="this.select()"></td>
+                    <td><span id="saldo-${index}" class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHoje)}</span></td>
+                    <td class="acumulado-col"><span id="acumulado-${index}" class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoFuturo)}</span></td>
+                `;
             }
             tbody.appendChild(tr);
         });
     }
 
+    // FUNÇÃO CORRIGIDA: Agora ela NÃO apaga a tabela, apenas atualiza os números do saldo em tempo real!
     function atualizarValor(index, campo, novoValor) {
+        // Salva o novo número no array invisível
         dadosAtuais[index][campo] = novoValor === "" ? 0 : parseInt(novoValor);
-        renderizarTabela(); 
+        
+        // Recalcula a matemática
+        const saldoHoje = dadosAtuais[index].devolvido - dadosAtuais[index].enviado;
+        const saldoHistorico = estoqueAcumulado[dadosAtuais[index].item] || 0;
+        const saldoFuturo = saldoHistorico + saldoHoje;
+
+        // Atualiza APENAS a "etiqueta" do saldo daquela linha específica, sem roubar o cursor do mouse!
+        const spanSaldo = document.getElementById(`saldo-${index}`);
+        if(spanSaldo) {
+            spanSaldo.textContent = formatarNumero(saldoHoje);
+            spanSaldo.className = `status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}`;
+        }
+
+        const spanAcumulado = document.getElementById(`acumulado-${index}`);
+        if(spanAcumulado) {
+            spanAcumulado.textContent = formatarNumero(saldoFuturo);
+            spanAcumulado.className = `status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}`;
+        }
     }
 
     function formatarNumero(num) { return num > 0 ? "+" + num : (num === 0 ? "OK" : num); }
@@ -324,7 +335,7 @@ REGRAS OBRIGATÓRIAS:
             document.getElementById('nome-conferente').parentElement.innerHTML = `<span class="info-label">Conferente</span><span class="info-value">${conferente}</span>`;
 
             btnSave.style.display = 'none';
-            renderizarTabela(true); 
+            renderizarTabela(true); // Trava a tabela como modo leitura após salvar
             document.getElementById('download-btn').style.display = 'flex';
         } catch (error) {
             alert("Erro ao salvar no banco de dados.");
