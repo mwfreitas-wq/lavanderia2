@@ -18,7 +18,6 @@
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px 20px; text-align: center; background-color: #f8fafc; transition: 0.3s; display: flex; flex-direction: column; gap: 15px; align-items: center; }
         input[type="file"] { display: none; }
         
-        /* Botões */
         .btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 15px; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 400px; color: white; transition: 0.2s;}
         .btn-primary { background-color: var(--primary); }
@@ -34,13 +33,11 @@
         .info-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
         .input-header { width: 100%; max-width: 140px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-weight: bold; color: var(--dark); text-align: center; }
         
-        /* Imagem com Zoom */
         .preview-container { text-align: center; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; position: relative; }
         .preview-img { max-width: 100%; height: 250px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: contain; cursor: zoom-in; transition: 0.3s; }
         .preview-img:hover { opacity: 0.8; }
         .zoom-hint { font-size: 12px; color: var(--primary); font-weight: bold; margin-top: 5px; display: block; cursor: pointer; }
         
-        /* Modais */
         .modal { display: none; position: fixed; z-index: 1000; padding-top: 40px; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); overflow: auto; }
         .modal-content { margin: auto; display: block; max-width: 95%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
         .close-modal { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 40px; font-weight: bold; cursor: pointer; transition: 0.3s; }
@@ -65,7 +62,6 @@
         #area-relatorio, #loading { display: none; }
         #debug-log { font-size: 11px; color: var(--danger); text-align: left; background: #fee2e2; padding: 10px; border-radius: 4px; margin-top: 10px; display: none; word-break: break-all; }
         
-        /* Estilos do Histórico */
         .historico-card { border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;}
         .historico-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 8px; transition: 0.2s; }
         .historico-header:hover { background: #f1f5f9; }
@@ -92,7 +88,7 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Lixeira Inteligente (Com Estorno Automático)</p>
+        <p class="subtitle">Motor de Precisão Total (Olho Biônico)</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary" style="margin: 0;">📸 Capturar Nova Guia</label>
@@ -102,7 +98,7 @@
 
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin-top: 10px;">Nenhuma imagem anexada</div>
             <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled style="margin: 0;">✨ Analisar Foto Rápido</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; display: none;">A IA está lendo a guia com atenção... Aguarde!</p>
+            <p id="loading" style="color: var(--warning); font-weight: bold; display: none;">A IA está lendo todas as linhas... Aguarde!</p>
             <div id="debug-log"></div>
         </div>
     </div>
@@ -257,14 +253,18 @@
             if (docRef.exists) estoqueAcumulado = docRef.data();
         } catch (error) { console.warn("Firebase não acessado, iniciando estoque zerado."); }
 
+        // O NOVO PROMPT TOTALMENTE GENERALIZADO PARA NÃO PULAR O COBERTOR
         const promptEspecialista = `Você é um auditor especialista em extração de romaneios preenchidos à mão.
         
-REGRAS ABSOLUTAS E CRÍTICAS:
-1. TOALHAS DE PISCINA E PROTETORES (LEIA ISSO COM ATENÇÃO): As linhas "Toalha de Banho Piscina", "Toalha de Rosto Piscina", "Protetor Colchão" e "Protetor Travesseiro" quase sempre têm números muito fracos, soltos, em azul claro (ex: um "1" ou "2" minúsculo e apagado). VOCÊ É OBRIGADO a procurar e registrar esses números azuis claros. NUNCA DEIXE ESSAS LINHAS COM "0" SE HOUVER QUALQUER TINTA NELAS.
-2. ANCORAGEM: Nas outras linhas, se houver um número escuro/grosso ao lado de um borrão azul, confie no número escuro.
-3. O TRAÇO GIGANTE: Existe um traço gigante em formato de "Z" que corta o final da folha. IGNORE ESSE TRAÇO. Ele não anula os números dos protetores.
-4. COLUNAS: 1ª coluna de números = "enviado". Coluna do meio (Entrada Lavanderia) = SEMPRE IGNORE. 3ª coluna de números = "devolvido".
-5. DATA: Extraia a data no topo ou no quadro inferior.
+REGRAS ABSOLUTAS E CRÍTICAS DE LEITURA LADO A LADO:
+1. LEIA TODAS AS LINHAS SEM EXCEÇÃO: Escaneie rigorosamente item por item. Preste extrema atenção em todas as linhas, especialmente "Cobertor", "Toalhas de Piscina" e "Protetores".
+2. CANETA ESCURA VS CLARA: Se a célula tiver um número forte/escuro anotado ao lado de um rabisco claro, use o ESCURO. Mas se a célula tiver APENAS caneta azul clara (mesmo que fraca ou rabiscada), VOCÊ DEVE LER O NÚMERO CLARO. Nunca coloque 0 se houver tinta na célula.
+3. O TRAÇO "Z" GIGANTE: Há um grande risco em forma de "Z" cortando o papel da metade para baixo. ELE NÃO APAGA OS NÚMEROS! Ignore o risco "Z" e leia normalmente os números de "Cobertor", "Protetor Colchão", etc., que estão escritos em cima, perto ou embaixo desse risco.
+4. COLUNAS EXATAS:
+   - 1ª Coluna ('Saída Cliente QTD') = "enviado".
+   - Coluna do Meio ('Entrada Lavanderia QTD') = IGNORE TOTALMENTE.
+   - 3ª Coluna ('Saída Lavanderia') = "devolvido".
+5. DATA: Extraia a data no topo ou rodapé (DD/MM/AAAA).
 
 Responda APENAS com o JSON:
 {
@@ -445,7 +445,6 @@ Responda APENAS com o JSON:
                         </div>
                         <div style="display:flex; align-items:center; gap: 15px;">
                             <span onclick="document.getElementById('det-${data.id}').style.display = document.getElementById('det-${data.id}').style.display === 'none' ? 'block' : 'none'" style="font-size: 12px; color: var(--primary); font-weight: bold; cursor: pointer;">VER ▼</span>
-                            
                             <button class="btn-apagar-historico" onclick="deletarRelatorioDoBanco('${data.id}')" title="Apagar este relatório e estornar estoque">🗑️</button>
                         </div>
                     </div>
@@ -489,39 +488,28 @@ Responda APENAS com o JSON:
         } catch(error) { divLista.innerHTML = '<p style="color:red; text-align:center;">Erro ao buscar histórico.</p>'; }
     }
 
-    // FUNÇÃO INTELIGENTE DE DELETAR E ESTORNAR ESTOQUE
     async function deletarRelatorioDoBanco(idDaNota) {
         if(confirm("ATENÇÃO: Deseja apagar esta nota? Os números dessa nota serão ESTORNADOS do Estoque Geral para manter os cálculos corretos.")) {
             try {
-                // 1. Pega os dados da nota que vai ser apagada para saber o que estornar
                 const docNota = await db.collection("historico_remessas").doc(idDaNota).get();
                 if(docNota.exists) {
                     const dadosNota = docNota.data();
-                    
-                    // 2. Pega o estoque atual no banco
                     const docEstoque = await db.collection("estoque_hoteis").doc("hit_hotel").get();
                     let estoqueAtual = docEstoque.exists ? docEstoque.data() : {};
 
-                    // 3. Desfaz a matemática: Subtrai o saldo da nota do estoque geral
                     if(dadosNota.itens) {
                         dadosNota.itens.forEach(item => {
                             const saldoDestaNota = item.devolvido - item.enviado;
                             if(estoqueAtual[item.item] !== undefined) {
-                                estoqueAtual[item.item] -= saldoDestaNota; // O Estorno!
+                                estoqueAtual[item.item] -= saldoDestaNota; 
                             }
                         });
-                        // 4. Salva o estoque geral arrumado no banco
                         await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAtual);
                     }
                 }
-
-                // 5. Deleta a nota da lista de histórico
                 await db.collection("historico_remessas").doc(idDaNota).delete();
                 alert("Nota apagada e Estoque Geral recalculado com sucesso!");
-                
-                // Recarrega a tela para os números do fundo atualizarem
                 location.reload(); 
-
             } catch(error) {
                 alert("Erro ao tentar apagar a nota.");
             }
