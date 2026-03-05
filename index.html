@@ -18,7 +18,6 @@
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px 20px; text-align: center; background-color: #f8fafc; transition: 0.3s; }
         input[type="file"] { display: none; }
         
-        /* Botões */
         .btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 15px; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 400px; color: white; transition: 0.2s;}
         .btn-primary { background-color: var(--primary); }
@@ -33,13 +32,11 @@
         .info-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
         .input-header { width: 100%; max-width: 140px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-weight: bold; color: var(--dark); text-align: center; }
         
-        /* Imagem com Zoom */
         .preview-container { text-align: center; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; position: relative; }
         .preview-img { max-width: 100%; height: 250px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: contain; cursor: zoom-in; transition: 0.3s; }
         .preview-img:hover { opacity: 0.8; }
         .zoom-hint { font-size: 12px; color: var(--primary); font-weight: bold; margin-top: 5px; display: block; cursor: pointer; }
         
-        /* Tela Cheia (Modal) para o Zoom */
         .modal { display: none; position: fixed; z-index: 1000; padding-top: 40px; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); overflow: auto; }
         .modal-content { margin: auto; display: block; max-width: 95%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
         .close-modal { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 40px; font-weight: bold; cursor: pointer; transition: 0.3s; }
@@ -75,7 +72,7 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Motor de Leitura Flexível Ativado</p>
+        <p class="subtitle">Motor IA (Foco Extremo em Rabiscos)</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary">📸 Capturar Guia</label>
@@ -110,7 +107,7 @@
         </div>
 
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Modo de Revisão:</strong> Compare a foto acima com a tabela. Digite os números direto nas caixas (sem travamentos).
+            ⚠️ <strong>Modo de Revisão:</strong> Compare a foto com a tabela. Digite/Corrija os números direto nas caixas!
         </div>
 
         <div style="overflow-x: auto;">
@@ -231,20 +228,16 @@
             console.warn("Firebase não acessado, iniciando estoque zerado.");
         }
 
-        // NOVO PROMPT INTELIGENTE (Flexível para as duas canetas)
-        const promptEspecialista = `Você é um auditor de lavanderia. Extraia os dados da tabela preenchida à mão na imagem.
+        const promptEspecialista = `Você é um auditor especialista em extração de romaneios preenchidos à mão. A caligrafia pode ser confusa.
+        
+REGRAS ABSOLUTAS:
+1. ANCORAGEM: Se houver um número escuro/grosso ao lado de um borrão azul, confie no número escuro.
+2. CANETA CLARA: SE a linha tiver APENAS números em azul claro (sem reforço escuro do lado), VOCÊ DEVE LER O NÚMERO AZUL CLARO! Não pule a linha.
+3. ATENÇÃO MÁXIMA AO FINAL DA TABELA: As linhas "Protetor Colchão" e "Protetor Travesseiro" frequentemente têm números azuis fracos, como "02" ou "2". Existe um risco/traço gigante em formato de "Z" que corta a folha. IGNORE ESSE TRAÇO GIGANTE, ele não anula os números! Leia o "02" e o "2" nessas linhas.
+4. COLUNAS: 1ª coluna de números = "enviado". Coluna do meio = IGNORE. 3ª coluna de números = "devolvido".
+5. DATA: Extraia a data no topo ou rodapé.
 
-REGRAS DE LEITURA (CRÍTICO):
-1. A caligrafia original da guia é em tinta azul clara. Em algumas linhas, o usuário pode ter reescrito o número ao lado (ancoragem) com uma caneta mais escura/grossa para facilitar.
-2. SE houver dois números na mesma célula (ex: um borrão azul e um '47' escuro do lado), confie APENAS no número escuro/legível.
-3. SE houver APENAS a caligrafia azul original na célula (como o número '1' na linha Toalha de Banho Piscina), VOCÊ DEVE LER A CANETA AZUL! Não deixe zerado se houver qualquer número escrito, não importa a cor.
-4. COLUNAS:
-   - 'Saída Cliente QTD' (1ª coluna de números) = "enviado"
-   - 'Entrada Lavanderia QTD' (coluna do meio) = IGNORE.
-   - 'Saída Lavanderia' (3ª coluna de números) = "devolvido"
-5. DATA: Extraia a data no topo (ex: 01 03 26 -> 01/03/2026) ou no quadro do rodapé.
-
-Responda APENAS com o JSON abaixo, preenchendo os "0" com os valores reais encontrados. Não adicione texto fora do JSON.
+Responda APENAS com o JSON:
 {
   "data_guia": "DD/MM/AAAA",
   "itens": [
@@ -254,8 +247,8 @@ Responda APENAS com o JSON abaixo, preenchendo os "0" com os valores reais encon
     {"item": "Toalha de Piso", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Banho", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Rosto", "enviado": 0, "devolvido": 0},
-    {"item": "Toalha de Banho Piscina", "enviado": 0, "devolvido": 0},
     {"item": "Toalha de Rosto Piscina", "enviado": 0, "devolvido": 0},
+    {"item": "Toalha de Banho Piscina", "enviado": 0, "devolvido": 0},
     {"item": "Colchão Acolchoado", "enviado": 0, "devolvido": 0},
     {"item": "Cobertor", "enviado": 0, "devolvido": 0},
     {"item": "Peneira", "enviado": 0, "devolvido": 0},
