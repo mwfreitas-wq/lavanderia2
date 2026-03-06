@@ -18,6 +18,7 @@
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 25px 15px; text-align: center; background-color: #f8fafc; transition: 0.3s; display: flex; flex-direction: column; gap: 15px; align-items: center; }
         input[type="file"] { display: none; }
         
+        /* Botões */
         .btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 15px; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 400px; color: white; transition: 0.2s;}
         .btn-primary { background-color: var(--primary); }
@@ -46,7 +47,6 @@
         th { background-color: #f8fafc; color: var(--text-light); font-size: 11px; text-transform: uppercase; line-height: 1.2;}
         td:first-child { text-align: left; font-weight: 600; color: var(--dark); max-width: 120px; white-space: normal;}
         
-        /* NOVA CLASSE DE DIVISÃO (PAREDE VISUAL) */
         .divisor-secao { border-left: 2px solid #94a3b8 !important; }
 
         tfoot tr { background-color: #e2e8f0; border-top: 2px solid #94a3b8; }
@@ -75,6 +75,10 @@
         .btn-apagar-historico { background: transparent; border: none; font-size: 20px; cursor: pointer; padding: 5px; border-radius: 50%; transition: 0.2s; }
         
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #e2e8f0; }
+        
+        /* Botão de Adicionar Linha */
+        .btn-add-linha { background-color: #f1f5f9; border: 2px dashed #94a3b8; color: #475569; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; width: 100%; margin-top: 15px; transition: 0.2s; }
+        .btn-add-linha:hover { background-color: #e2e8f0; color: #1e293b; border-color: #64748b; }
     </style>
 </head>
 <body>
@@ -97,7 +101,7 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Auditoria Dupla com Separação Visual</p>
+        <p class="subtitle">Com Adição Manual de Itens</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary" style="margin: 0;">📸 Capturar Nova Guia</label>
@@ -124,7 +128,7 @@
         </div>
 
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Passo Manual:</strong> A coluna amarela <b>"Voltou (Hotel)"</b> está zerada. Preencha ela com a sua contagem física!
+            ⚠️ <strong>Modo de Revisão:</strong> Preencha a coluna amarela <b>"Voltou (Hotel)"</b>. Se a IA pular algum item, clique no botão "Adicionar Item" abaixo da tabela.
         </div>
 
         <div class="table-responsive">
@@ -150,6 +154,8 @@
                 <tfoot id="table-foot"></tfoot>
             </table>
         </div>
+        
+        <button id="btn-add-linha" class="btn-add-linha" onclick="adicionarLinhaManual()">➕ Adicionar Item Faltante / Esquecido</button>
     </div>
 
     <div class="btn-group" id="action-buttons" style="display: none;">
@@ -308,8 +314,37 @@ Responda APENAS com o JSON:
             document.getElementById('upload-card').style.display = 'none';
             document.getElementById('area-relatorio').style.display = 'block';
             document.getElementById('action-buttons').style.display = 'flex'; 
+            document.getElementById('btn-add-linha').style.display = 'block'; // Mostra botão de add linha
 
         } catch (error) { mostrarErro("A comunicação com a Inteligência falhou.", error.message); }
+    }
+
+    // NOVA FUNÇÃO: ADICIONAR ITEM MANUALMENTE
+    function adicionarLinhaManual() {
+        const nomeItem = prompt("Qual o nome do item que faltou na tabela? (Ex: Toalha de Piso Extra)");
+        
+        if (nomeItem && nomeItem.trim() !== "") {
+            // Checa se já existe para não ficar confuso
+            const existe = dadosAtuais.find(i => i.item.toLowerCase() === nomeItem.trim().toLowerCase());
+            if (existe) {
+                alert("Este item já está na tabela. Você pode editar os números diretamente nela!");
+                return;
+            }
+
+            // Insere no final do array de dados
+            dadosAtuais.push({
+                item: nomeItem.trim(),
+                enviado: 0,
+                devolvido: 0,
+                devolvido_hotel: 0
+            });
+
+            // Recarrega a tabela para a linha aparecer
+            renderizarTabela(false);
+            
+            // Dá um scroll leve até o fim da tabela
+            document.getElementById('btn-add-linha').scrollIntoView({ behavior: 'smooth' });
+        }
     }
 
     function renderizarTabela(modoLeitura = false) {
@@ -349,7 +384,7 @@ Responda APENAS com o JSON:
                     <td style="border-right: 1px solid #e2e8f0;">${linha.item}</td>
                     <td style="border-right: 1px solid #e2e8f0;"><input type="number" value="${linha.enviado}" min="0" oninput="atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td>
                     <td><input type="number" value="${linha.devolvido}" min="0" oninput="atualizarValor(${index}, 'devolvido', this.value)" onfocus="this.select()"></td>
-                    <td class="col-hotel-bg"><input type="number" value="" placeholder="0" class="col-hotel-input" min="0" oninput="atualizarValor(${index}, 'devolvido_hotel', this.value)" onfocus="this.select()"></td>
+                    <td class="col-hotel-bg"><input type="number" value="${linha.devolvido_hotel || ''}" placeholder="0" class="col-hotel-input" min="0" oninput="atualizarValor(${index}, 'devolvido_hotel', this.value)" onfocus="this.select()"></td>
                     
                     <td class="divisor-secao"><span id="slav-${index}" class="status-badge ${saldoLav < 0 ? 'negative' : (saldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoLav)}</span></td>
                     <td class="col-hotel-bg"><span id="shot-${index}" class="status-badge ${saldoHot < 0 ? 'negative' : (saldoHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHot)}</span></td>
@@ -426,6 +461,7 @@ Responda APENAS com o JSON:
             document.getElementById('nome-conferente').parentElement.innerHTML = `<span class="info-label">Conferente</span><span class="info-value">${conferente}</span>`;
 
             btnSave.style.display = 'none'; 
+            document.getElementById('btn-add-linha').style.display = 'none'; // Esconde botão de adicionar linha após salvar
             renderizarTabela(true); 
             
             document.getElementById('new-report-btn').style.display = 'inline-flex';
@@ -555,8 +591,12 @@ Responda APENAS com o JSON:
 
         const area = document.getElementById('area-relatorio');
         area.style.border = "none"; area.style.boxShadow = "none"; area.style.padding = "30px"; area.style.backgroundColor = "#ffffff";
+        
+        // Esconde botão de add linha e caixas de aviso para o print ficar limpo
         const avisoAmarelo = area.querySelector('div[style*="background-color: #fffbeb"]');
+        const btnAdd = document.getElementById('btn-add-linha');
         if (avisoAmarelo) avisoAmarelo.style.display = 'none';
+        if (btnAdd) btnAdd.style.display = 'none';
         
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             area.style.border = ""; area.style.boxShadow = ""; area.style.padding = "24px"; area.style.backgroundColor = "var(--card-bg)";
@@ -577,8 +617,11 @@ Responda APENAS com o JSON:
         fecharZoom(); 
         const area = document.getElementById('area-relatorio');
         area.style.border = "none"; area.style.boxShadow = "none"; area.style.padding = "30px"; area.style.backgroundColor = "#ffffff";
+        
         const avisoAmarelo = area.querySelector('div[style*="background-color: #fffbeb"]');
+        const btnAdd = document.getElementById('btn-add-linha');
         if (avisoAmarelo) avisoAmarelo.style.display = 'none';
+        if (btnAdd) btnAdd.style.display = 'none';
         
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
