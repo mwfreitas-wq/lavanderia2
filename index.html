@@ -40,12 +40,15 @@
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); overflow: auto; align-items: center; justify-content: center; padding-top: 20px; }
         .modal-content { margin: auto; display: block; max-width: 95%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
         
-        /* Ajustes Tabela para 8 Colunas */
-        table { width: 100%; border-collapse: collapse; min-width: 800px; } /* Min width maior para rolagem lateral no celular */
+        /* Ajustes Tabela */
+        table { width: 100%; border-collapse: collapse; min-width: 800px; } 
         th, td { padding: 10px 4px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 13px;}
         th { background-color: #f8fafc; color: var(--text-light); font-size: 11px; text-transform: uppercase; line-height: 1.2;}
         td:first-child { text-align: left; font-weight: 600; color: var(--dark); max-width: 120px; white-space: normal;}
         
+        /* NOVA CLASSE DE DIVISÃO (PAREDE VISUAL) */
+        .divisor-secao { border-left: 2px solid #94a3b8 !important; }
+
         tfoot tr { background-color: #e2e8f0; border-top: 2px solid #94a3b8; }
         tfoot td { padding: 12px 4px; text-align: center; font-size: 12px; font-weight: bold; color: var(--dark); }
         tfoot td:first-child { text-align: right; text-transform: uppercase; padding-right: 10px; }
@@ -53,7 +56,7 @@
         input[type="number"] { width: 45px; padding: 6px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; font-weight: bold; color: var(--primary); background-color: #f8fafc; }
         input[type="number"]:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
         
-        .col-hotel-input { background-color: #fef9c3 !important; border-color: #fde047 !important; color: #b45309 !important;} /* Amarelo destaque para manual */
+        .col-hotel-input { background-color: #fef9c3 !important; border-color: #fde047 !important; color: #b45309 !important;} 
         .col-hotel-bg { background-color: #fefce8; }
 
         .status-badge { display: inline-block; padding: 3px 6px; border-radius: 12px; font-weight: bold; font-size: 12px; }
@@ -61,8 +64,8 @@
         .positive { color: var(--success); background-color: #ecfdf5; }
         .neutral { color: var(--text-light); background-color: #f1f5f9; }
         
-        .acumulado-col { background-color: #fafafa; border-left: 1px dashed #e2e8f0; }
-        .acumulado-hotel-col { background-color: #fefce8; border-left: 1px dashed #fde047; }
+        .acumulado-col { background-color: #fafafa; }
+        .acumulado-hotel-col { background-color: #fefce8; }
 
         #area-relatorio, #loading { display: none; }
         #debug-log { font-size: 11px; color: var(--danger); text-align: left; background: #fee2e2; padding: 10px; border-radius: 4px; margin-top: 10px; display: none; word-break: break-all; }
@@ -71,7 +74,6 @@
         .historico-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 8px; transition: 0.2s; }
         .btn-apagar-historico { background: transparent; border: none; font-size: 20px; cursor: pointer; padding: 5px; border-radius: 50%; transition: 0.2s; }
         
-        /* Container responsivo para tabela não quebrar */
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #e2e8f0; }
     </style>
 </head>
@@ -95,7 +97,7 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Auditoria Dupla: Lavanderia vs. Hotel</p>
+        <p class="subtitle">Auditoria Dupla com Separação Visual</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary" style="margin: 0;">📸 Capturar Nova Guia</label>
@@ -132,15 +134,15 @@
                         <th rowspan="2" style="border-right: 1px solid #e2e8f0; vertical-align: middle;">Item</th>
                         <th rowspan="2" style="border-right: 1px solid #e2e8f0; vertical-align: middle;">Foi<br>(Cliente)</th>
                         <th colspan="2" style="border-bottom: 1px solid #e2e8f0;">Retorno</th>
-                        <th colspan="2" style="border-bottom: 1px solid #e2e8f0;">Saldos Hoje</th>
-                        <th colspan="2" style="border-bottom: 1px solid #e2e8f0;">Estoque Geral</th>
+                        <th colspan="2" class="divisor-secao" style="border-bottom: 1px solid #e2e8f0;">Saldos Hoje</th>
+                        <th colspan="2" class="divisor-secao" style="border-bottom: 1px solid #e2e8f0;">Estoque Geral</th>
                     </tr>
                     <tr>
                         <th>Lavanderia<br><span style="font-size: 9px; font-weight:normal;">(Lido IA)</span></th>
                         <th class="col-hotel-bg">Hotel<br><span style="font-size: 9px; font-weight:normal;">(Manual)</span></th>
-                        <th>Lav.</th>
+                        <th class="divisor-secao">Lav.</th>
                         <th class="col-hotel-bg">Hotel</th>
-                        <th class="acumulado-col">Lav.</th>
+                        <th class="acumulado-col divisor-secao">Lav.</th>
                         <th class="acumulado-hotel-col">Hotel</th>
                     </tr>
                 </thead>
@@ -236,7 +238,6 @@
             const docRef = await db.collection("estoque_hoteis").doc("hit_hotel").get();
             if (docRef.exists) {
                 const dadosBanco = docRef.data();
-                // Migração de estoque velho para o novo formato duplo {lavanderia, hotel}
                 for (let k in dadosBanco) {
                     if (typeof dadosBanco[k] === 'number') {
                         estoqueAcumulado[k] = { lavanderia: dadosBanco[k], hotel: dadosBanco[k] };
@@ -295,7 +296,6 @@ Responda APENAS com o JSON:
             
             let jsonLido = JSON.parse(textResponse);
             
-            // Injeta o novo campo manual na memória
             let itensBase = jsonLido.itens || jsonLido;
             dadosAtuais = itensBase.map(i => ({...i, devolvido_hotel: 0}));
             
@@ -339,9 +339,9 @@ Responda APENAS com o JSON:
                     <td style="border-right: 1px solid #e2e8f0;"><b>${linha.enviado}</b></td>
                     <td><b>${linha.devolvido}</b></td>
                     <td class="col-hotel-bg"><b>${linha.devolvido_hotel}</b></td>
-                    <td><span class="status-badge ${saldoLav < 0 ? 'negative' : (saldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoLav)}</span></td>
+                    <td class="divisor-secao"><span class="status-badge ${saldoLav < 0 ? 'negative' : (saldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoLav)}</span></td>
                     <td class="col-hotel-bg"><span class="status-badge ${saldoHot < 0 ? 'negative' : (saldoHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHot)}</span></td>
-                    <td class="acumulado-col"><span class="status-badge ${futLav < 0 ? 'negative' : (futLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(futLav)}</span></td>
+                    <td class="acumulado-col divisor-secao"><span class="status-badge ${futLav < 0 ? 'negative' : (futLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(futLav)}</span></td>
                     <td class="acumulado-hotel-col"><span class="status-badge ${futHot < 0 ? 'negative' : (futHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(futHot)}</span></td>
                 `;
             } else {
@@ -350,9 +350,10 @@ Responda APENAS com o JSON:
                     <td style="border-right: 1px solid #e2e8f0;"><input type="number" value="${linha.enviado}" min="0" oninput="atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td>
                     <td><input type="number" value="${linha.devolvido}" min="0" oninput="atualizarValor(${index}, 'devolvido', this.value)" onfocus="this.select()"></td>
                     <td class="col-hotel-bg"><input type="number" value="" placeholder="0" class="col-hotel-input" min="0" oninput="atualizarValor(${index}, 'devolvido_hotel', this.value)" onfocus="this.select()"></td>
-                    <td><span id="slav-${index}" class="status-badge ${saldoLav < 0 ? 'negative' : (saldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoLav)}</span></td>
+                    
+                    <td class="divisor-secao"><span id="slav-${index}" class="status-badge ${saldoLav < 0 ? 'negative' : (saldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoLav)}</span></td>
                     <td class="col-hotel-bg"><span id="shot-${index}" class="status-badge ${saldoHot < 0 ? 'negative' : (saldoHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHot)}</span></td>
-                    <td class="acumulado-col"><span id="elav-${index}" class="status-badge ${futLav < 0 ? 'negative' : (futLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(futLav)}</span></td>
+                    <td class="acumulado-col divisor-secao"><span id="elav-${index}" class="status-badge ${futLav < 0 ? 'negative' : (futLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(futLav)}</span></td>
                     <td class="acumulado-hotel-col"><span id="ehot-${index}" class="status-badge ${futHot < 0 ? 'negative' : (futHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(futHot)}</span></td>
                 `;
             }
@@ -363,9 +364,9 @@ Responda APENAS com o JSON:
             <tr>
                 <td colspan="2" style="border-right: 1px solid #94a3b8;">TOTAIS:</td>
                 <td colspan="2"></td>
-                <td><span id="tslav" class="status-badge ${totSaldoLav < 0 ? 'negative' : (totSaldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(totSaldoLav)}</span></td>
+                <td class="divisor-secao"><span id="tslav" class="status-badge ${totSaldoLav < 0 ? 'negative' : (totSaldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(totSaldoLav)}</span></td>
                 <td class="col-hotel-bg"><span id="tshot" class="status-badge ${totSaldoHot < 0 ? 'negative' : (totSaldoHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(totSaldoHot)}</span></td>
-                <td class="acumulado-col"><span id="telav" class="status-badge ${totEstLav < 0 ? 'negative' : (totEstLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(totEstLav)}</span></td>
+                <td class="acumulado-col divisor-secao"><span id="telav" class="status-badge ${totEstLav < 0 ? 'negative' : (totEstLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(totEstLav)}</span></td>
                 <td class="acumulado-hotel-col"><span id="tehot" class="status-badge ${totEstHot < 0 ? 'negative' : (totEstHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(totEstHot)}</span></td>
             </tr>`;
     }
@@ -475,7 +476,7 @@ Responda APENAS com o JSON:
                                     <th style="padding:6px; border-bottom:1px solid #cbd5e1;">Foi</th>
                                     <th style="padding:6px; border-bottom:1px solid #cbd5e1;">Voltou(Lav)</th>
                                     <th style="padding:6px; border-bottom:1px solid #cbd5e1; background-color: #fefce8;">Voltou(Hot)</th>
-                                    <th style="padding:6px; border-bottom:1px solid #cbd5e1;">Saldo(Lav)</th>
+                                    <th style="padding:6px; border-bottom:1px solid #cbd5e1; border-left: 2px solid #94a3b8;">Saldo(Lav)</th>
                                     <th style="padding:6px; border-bottom:1px solid #cbd5e1; background-color: #fefce8;">Saldo(Hot)</th>
                                 </tr>
                             </thead>
@@ -494,7 +495,7 @@ Responda APENAS com o JSON:
                                     <td style="padding: 6px; border-bottom: 1px solid #e2e8f0;">${item.enviado}</td>
                                     <td style="padding: 6px; border-bottom: 1px solid #e2e8f0;">${item.devolvido}</td>
                                     <td style="padding: 6px; border-bottom: 1px solid #e2e8f0; background-color: #fefce8;">${item.devolvido_hotel || 0}</td>
-                                    <td style="padding: 6px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: ${corL};">${slav > 0 ? '+':''}${slav}</td>
+                                    <td style="padding: 6px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: ${corL}; border-left: 2px solid #94a3b8;">${slav > 0 ? '+':''}${slav}</td>
                                     <td style="padding: 6px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: ${corH}; background-color: #fefce8;">${shot > 0 ? '+':''}${shot}</td>
                                  </tr>`;
                     });
@@ -503,7 +504,7 @@ Responda APENAS com o JSON:
                             <tfoot>
                                 <tr>
                                     <td colspan="4" style="text-align:right; padding:8px; font-weight:bold;">BALANÇOS DO DIA:</td>
-                                    <td style="padding:8px; font-weight:bold; color:${tslav < 0 ? 'var(--danger)' : 'var(--success)'};">${tslav > 0 ? '+':''}${tslav}</td>
+                                    <td style="padding:8px; font-weight:bold; color:${tslav < 0 ? 'var(--danger)' : 'var(--success)'}; border-left: 2px solid #94a3b8;">${tslav > 0 ? '+':''}${tslav}</td>
                                     <td style="padding:8px; font-weight:bold; background-color: #fefce8; color:${tshot < 0 ? 'var(--danger)' : 'var(--success)'};">${tshot > 0 ? '+':''}${tshot}</td>
                                 </tr>
                             </tfoot>
@@ -557,7 +558,6 @@ Responda APENAS com o JSON:
         const avisoAmarelo = area.querySelector('div[style*="background-color: #fffbeb"]');
         if (avisoAmarelo) avisoAmarelo.style.display = 'none';
         
-        // Esconde colunas que quebram o PDF no celular temporariamente se quiser, mas vamos deixar completo
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             area.style.border = ""; area.style.boxShadow = ""; area.style.padding = "24px"; area.style.backgroundColor = "var(--card-bg)";
             if (avisoAmarelo) avisoAmarelo.style.display = 'block';
