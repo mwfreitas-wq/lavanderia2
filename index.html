@@ -11,11 +11,11 @@
     <style>
         :root { --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --share: #8b5cf6; --dark: #1e293b; --text-main: #334155; --text-light: #64748b; --bg-color: #f1f5f9; --card-bg: #ffffff; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px 10px; }
-        .container { max-width: 900px; margin: auto; }
-        .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 24px; margin-bottom: 20px; }
-        h1 { color: var(--dark); text-align: center; margin-top: 0; font-size: 24px; font-weight: 700; }
-        p.subtitle { text-align: center; color: var(--success); margin-top: -10px; margin-bottom: 20px; font-size: 14px; font-weight: bold; }
-        .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px 20px; text-align: center; background-color: #f8fafc; transition: 0.3s; display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        .container { max-width: 1000px; margin: auto; }
+        .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
+        h1 { color: var(--dark); text-align: center; margin-top: 0; font-size: 22px; font-weight: 700; }
+        p.subtitle { text-align: center; color: var(--success); margin-top: -10px; margin-bottom: 20px; font-size: 13px; font-weight: bold; }
+        .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 25px 15px; text-align: center; background-color: #f8fafc; transition: 0.3s; display: flex; flex-direction: column; gap: 15px; align-items: center; }
         input[type="file"] { display: none; }
         
         .btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 15px; }
@@ -28,45 +28,51 @@
         .btn-history { background-color: #475569; }
         .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
         
-        .info-panel { display: flex; flex-wrap: wrap; gap: 15px; justify-content: space-between; align-items: center; background-color: #f8fafc; border-left: 4px solid var(--primary); padding: 15px; border-radius: 0 8px 8px 0; margin-bottom: 20px; }
-        .info-panel div { display: flex; flex-direction: column; flex: 1; min-width: 120px; }
+        .info-panel { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; background-color: #f8fafc; border-left: 4px solid var(--primary); padding: 12px; border-radius: 0 8px 8px 0; margin-bottom: 15px; }
+        .info-panel div { display: flex; flex-direction: column; flex: 1; min-width: 100px; }
         .info-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
-        .input-header { width: 100%; max-width: 140px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 15px; font-weight: bold; color: var(--dark); text-align: center; }
+        .input-header { width: 100%; max-width: 120px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; font-weight: bold; color: var(--dark); text-align: center; }
         
-        .preview-container { text-align: center; margin-bottom: 20px; background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; position: relative; }
-        .preview-img { max-width: 100%; height: 250px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: contain; cursor: zoom-in; transition: 0.3s; }
-        .preview-img:hover { opacity: 0.8; }
+        .preview-container { text-align: center; margin-bottom: 15px; background-color: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; position: relative; }
+        .preview-img { max-width: 100%; height: 200px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: contain; cursor: zoom-in; transition: 0.3s; }
         .zoom-hint { font-size: 12px; color: var(--primary); font-weight: bold; margin-top: 5px; display: block; cursor: pointer; }
         
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); overflow: auto; align-items: center; justify-content: center; padding-top: 40px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); overflow: auto; align-items: center; justify-content: center; padding-top: 20px; }
         .modal-content { margin: auto; display: block; max-width: 95%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
-        .close-modal { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 40px; font-weight: bold; cursor: pointer; transition: 0.3s; }
-        .close-modal:hover { color: #bbb; }
-
-        table { width: 100%; border-collapse: collapse; min-width: 600px; }
-        th, td { padding: 12px 8px; text-align: center; border-bottom: 1px solid #e2e8f0; }
-        th { background-color: #f8fafc; color: var(--text-light); font-size: 12px; text-transform: uppercase; }
-        td:first-child { text-align: left; font-weight: 600; color: var(--dark); }
+        
+        /* Ajustes Tabela para 8 Colunas */
+        table { width: 100%; border-collapse: collapse; min-width: 800px; } /* Min width maior para rolagem lateral no celular */
+        th, td { padding: 10px 4px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 13px;}
+        th { background-color: #f8fafc; color: var(--text-light); font-size: 11px; text-transform: uppercase; line-height: 1.2;}
+        td:first-child { text-align: left; font-weight: 600; color: var(--dark); max-width: 120px; white-space: normal;}
         
         tfoot tr { background-color: #e2e8f0; border-top: 2px solid #94a3b8; }
-        tfoot td { padding: 14px 8px; text-align: center; font-size: 14px; font-weight: bold; color: var(--dark); }
-        tfoot td:first-child { text-align: right; text-transform: uppercase; padding-right: 15px; }
+        tfoot td { padding: 12px 4px; text-align: center; font-size: 12px; font-weight: bold; color: var(--dark); }
+        tfoot td:first-child { text-align: right; text-transform: uppercase; padding-right: 10px; }
 
-        input[type="number"] { width: 55px; padding: 8px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 16px; font-weight: bold; color: var(--primary); background-color: #f8fafc; }
+        input[type="number"] { width: 45px; padding: 6px; text-align: center; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; font-weight: bold; color: var(--primary); background-color: #f8fafc; }
         input[type="number"]:focus { outline: none; border-color: var(--primary); background-color: #fff; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); }
-        .status-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 13px; }
+        
+        .col-hotel-input { background-color: #fef9c3 !important; border-color: #fde047 !important; color: #b45309 !important;} /* Amarelo destaque para manual */
+        .col-hotel-bg { background-color: #fefce8; }
+
+        .status-badge { display: inline-block; padding: 3px 6px; border-radius: 12px; font-weight: bold; font-size: 12px; }
         .negative { color: var(--danger); background-color: #fef2f2; }
         .positive { color: var(--success); background-color: #ecfdf5; }
         .neutral { color: var(--text-light); background-color: #f1f5f9; }
+        
         .acumulado-col { background-color: #fafafa; border-left: 1px dashed #e2e8f0; }
+        .acumulado-hotel-col { background-color: #fefce8; border-left: 1px dashed #fde047; }
+
         #area-relatorio, #loading { display: none; }
         #debug-log { font-size: 11px; color: var(--danger); text-align: left; background: #fee2e2; padding: 10px; border-radius: 4px; margin-top: 10px; display: none; word-break: break-all; }
         
         .historico-card { border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;}
         .historico-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 8px; transition: 0.2s; }
-        .historico-header:hover { background: #f1f5f9; }
         .btn-apagar-historico { background: transparent; border: none; font-size: 20px; cursor: pointer; padding: 5px; border-radius: 50%; transition: 0.2s; }
-        .btn-apagar-historico:hover { background: #fee2e2; }
+        
+        /* Container responsivo para tabela não quebrar */
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body>
@@ -77,50 +83,36 @@
 </div>
 
 <div id="historico-modal" class="modal" style="background-color: rgba(0,0,0,0.85); padding-top: 0; display: none;" onclick="fecharHistoricoBackground(event)">
-    <div class="modal-content" style="background-color: var(--bg-color); padding: 20px; width: 95%; max-width: 800px; height: 85vh; display: flex; flex-direction: column; position: relative; margin-top: 5vh;" onclick="event.stopPropagation();">
-        
+    <div class="modal-content" style="background-color: var(--bg-color); padding: 20px; width: 95%; max-width: 900px; height: 85vh; display: flex; flex-direction: column; position: relative; margin-top: 5vh;" onclick="event.stopPropagation();">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
             <h2 style="color: var(--dark); margin: 0; font-size: 20px;">📅 Histórico de Relatórios</h2>
             <button onclick="fecharHistorico()" style="background-color: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">❌ Fechar</button>
         </div>
-
-        <div id="lista-historico" style="overflow-y: auto; flex: 1; padding-right: 5px;">
-            </div>
+        <div id="lista-historico" style="overflow-y: auto; flex: 1; padding-right: 5px;"></div>
     </div>
 </div>
 
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Motor de Precisão Total (Olho Biônico)</p>
+        <p class="subtitle">Auditoria Dupla: Lavanderia vs. Hotel</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary" style="margin: 0;">📸 Capturar Nova Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
-            
             <button class="btn btn-history" onclick="abrirHistorico()" style="margin: 0;">📅 Consultar Histórico Salvo</button>
-
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin-top: 10px;">Nenhuma imagem anexada</div>
             <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled style="margin: 0;">✨ Analisar Foto Rápido</button>
-            <p id="loading" style="color: var(--warning); font-weight: bold; display: none;">A IA está lendo todas as linhas... Aguarde!</p>
+            <p id="loading" style="color: var(--warning); font-weight: bold; display: none;">A IA está processando... Aguarde!</p>
             <div id="debug-log"></div>
         </div>
     </div>
 
     <div id="area-relatorio" class="card">
         <div class="info-panel" id="cabecalho-relatorio">
-            <div>
-                <span class="info-label">Cliente</span>
-                <span class="info-value" style="font-size: 16px; font-weight: bold;">HIT - Hotel</span>
-            </div>
-            <div>
-                <span class="info-label">Data do Romaneio</span>
-                <input type="text" id="data-remessa-input" class="input-header" placeholder="00/00/00">
-            </div>
-            <div>
-                <span class="info-label">Conferente</span>
-                <input type="text" id="nome-conferente" class="input-header" placeholder="Seu Nome">
-            </div>
+            <div><span class="info-label">Cliente</span><span class="info-value" style="font-size: 16px; font-weight: bold;">HIT - Hotel</span></div>
+            <div><span class="info-label">Data</span><input type="text" id="data-remessa-input" class="input-header" placeholder="00/00/00"></div>
+            <div><span class="info-label">Conferente</span><input type="text" id="nome-conferente" class="input-header" placeholder="Seu Nome"></div>
         </div>
 
         <div class="preview-container">
@@ -130,18 +122,26 @@
         </div>
 
         <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Modo de Revisão:</strong> Compare a foto com a tabela. Digite/Corrija os números direto nas caixas!
+            ⚠️ <strong>Passo Manual:</strong> A coluna amarela <b>"Voltou (Hotel)"</b> está zerada. Preencha ela com a sua contagem física!
         </div>
 
-        <div style="overflow-x: auto;">
+        <div class="table-responsive">
             <table id="result-table">
                 <thead>
                     <tr>
-                        <th>Item</th>
-                        <th>Foi<br>(Saída Cliente)</th>
-                        <th>Voltou<br>(Saída Lavanderia)</th>
-                        <th>Saldo<br>Hoje</th>
-                        <th class="acumulado-col">Estoque<br>Geral</th>
+                        <th rowspan="2" style="border-right: 1px solid #e2e8f0; vertical-align: middle;">Item</th>
+                        <th rowspan="2" style="border-right: 1px solid #e2e8f0; vertical-align: middle;">Foi<br>(Cliente)</th>
+                        <th colspan="2" style="border-bottom: 1px solid #e2e8f0;">Retorno</th>
+                        <th colspan="2" style="border-bottom: 1px solid #e2e8f0;">Saldos Hoje</th>
+                        <th colspan="2" style="border-bottom: 1px solid #e2e8f0;">Estoque Geral</th>
+                    </tr>
+                    <tr>
+                        <th>Lavanderia<br><span style="font-size: 9px; font-weight:normal;">(Lido IA)</span></th>
+                        <th class="col-hotel-bg">Hotel<br><span style="font-size: 9px; font-weight:normal;">(Manual)</span></th>
+                        <th>Lav.</th>
+                        <th class="col-hotel-bg">Hotel</th>
+                        <th class="acumulado-col">Lav.</th>
+                        <th class="acumulado-hotel-col">Hotel</th>
                     </tr>
                 </thead>
                 <tbody id="table-body"></tbody>
@@ -152,12 +152,9 @@
 
     <div class="btn-group" id="action-buttons" style="display: none;">
         <button id="save-btn" class="btn btn-success" style="padding: 16px;" onclick="salvarEstoqueNaNuvem()">☁️ Confirmar e Salvar no Banco</button>
-        
         <button id="new-report-btn" class="btn btn-warning" style="display: none; padding: 16px;" onclick="limparDados()">➕ Iniciar Novo Relatório</button>
         <button id="share-btn" class="btn btn-share" style="display: none;" onclick="compartilharRelatorio()">📲 Compartilhar no WhatsApp/Email</button>
-        
         <button id="download-btn" class="btn btn-primary" onclick="baixarJPG()">📥 Baixar Relatório Completo (JPG)</button>
-        
         <button id="clear-btn" class="btn btn-danger" style="margin-top: 10px;" onclick="limparDados()">🗑️ Limpar Tela / Descartar</button>
     </div>
 
@@ -165,7 +162,6 @@
 
 <script>
     const GROQ_API_KEY = "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";
-
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
         authDomain: "lavanderia-hoteis.firebaseapp.com",
@@ -183,28 +179,11 @@
     let imagemBase64 = "";
     let imagemCompletaComCabecalho = "";
 
-    function abrirZoom() {
-        document.getElementById('image-modal').style.display = "flex";
-        document.getElementById('img-zoomed').src = imagemCompletaComCabecalho;
-    }
-
+    function abrirZoom() { document.getElementById('image-modal').style.display = "flex"; document.getElementById('img-zoomed').src = imagemCompletaComCabecalho; }
     function fecharZoom() { document.getElementById('image-modal').style.display = "none"; }
-
-    function abrirHistorico() {
-        document.getElementById('historico-modal').style.display = "flex";
-        carregarHistorico();
-    }
-
-    function fecharHistorico() { 
-        document.getElementById('historico-modal').style.display = "none"; 
-    }
-    
-    function fecharHistoricoBackground(event) {
-        // Se a pessoa clicar no fundo preto, fecha a tela também
-        if (event.target.id === 'historico-modal') {
-            fecharHistorico();
-        }
-    }
+    function abrirHistorico() { document.getElementById('historico-modal').style.display = "flex"; carregarHistorico(); }
+    function fecharHistorico() { document.getElementById('historico-modal').style.display = "none"; }
+    function fecharHistoricoBackground(event) { if (event.target.id === 'historico-modal') fecharHistorico(); }
 
     function mostrarErro(mensagem, erroTecnico = "") {
         const debugBox = document.getElementById('debug-log');
@@ -226,24 +205,16 @@
                 const img = new Image();
                 img.onload = function() {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1400; 
-                    const MAX_HEIGHT = 1800;
-                    let width = img.width;
-                    let height = img.height;
-
-                    if (width > height) {
-                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                    } else {
-                        if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                    }
-                    canvas.width = width;
-                    canvas.height = height;
+                    const MAX_WIDTH = 1400; const MAX_HEIGHT = 1800;
+                    let width = img.width; let height = img.height;
+                    if (width > height) { if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } } 
+                    else { if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } }
+                    canvas.width = width; canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
                     imagemCompletaComCabecalho = canvas.toDataURL('image/jpeg', 0.85);
                     imagemBase64 = imagemCompletaComCabecalho.split(',')[1];
-                    
                     document.getElementById('imagem-guia-relatorio').src = imagemCompletaComCabecalho;
                     document.getElementById('file-name').textContent = "Imagem pronta! Pode clicar em Analisar.";
                     document.getElementById('process-btn').disabled = false;
@@ -263,19 +234,26 @@
 
         try {
             const docRef = await db.collection("estoque_hoteis").doc("hit_hotel").get();
-            if (docRef.exists) estoqueAcumulado = docRef.data();
+            if (docRef.exists) {
+                const dadosBanco = docRef.data();
+                // Migração de estoque velho para o novo formato duplo {lavanderia, hotel}
+                for (let k in dadosBanco) {
+                    if (typeof dadosBanco[k] === 'number') {
+                        estoqueAcumulado[k] = { lavanderia: dadosBanco[k], hotel: dadosBanco[k] };
+                    } else {
+                        estoqueAcumulado[k] = dadosBanco[k];
+                    }
+                }
+            }
         } catch (error) { console.warn("Firebase não acessado, iniciando estoque zerado."); }
 
         const promptEspecialista = `Você é um auditor especialista em extração de romaneios preenchidos à mão.
         
-REGRAS ABSOLUTAS E CRÍTICAS DE LEITURA LADO A LADO:
-1. LEIA TODAS AS LINHAS SEM EXCEÇÃO: Escaneie rigorosamente item por item. Preste extrema atenção em todas as linhas, especialmente "Cobertor", "Toalhas de Piscina" e "Protetores".
-2. CANETA ESCURA VS CLARA: Se a célula tiver um número forte/escuro anotado ao lado de um rabisco claro, use o ESCURO. Mas se a célula tiver APENAS caneta azul clara (mesmo que fraca ou rabiscada), VOCÊ DEVE LER O NÚMERO CLARO. Nunca coloque 0 se houver tinta na célula.
-3. O TRAÇO "Z" GIGANTE: Há um grande risco em forma de "Z" cortando o papel da metade para baixo. ELE NÃO APAGA OS NÚMEROS! Ignore o risco "Z" e leia normalmente os números de "Cobertor", "Protetor Colchão", etc., que estão escritos em cima, perto ou embaixo desse risco.
-4. COLUNAS EXATAS:
-   - 1ª Coluna ('Saída Cliente QTD') = "enviado".
-   - Coluna do Meio ('Entrada Lavanderia QTD') = IGNORE TOTALMENTE.
-   - 3ª Coluna ('Saída Lavanderia') = "devolvido".
+REGRAS ABSOLUTAS:
+1. LEIA TODAS AS LINHAS SEM EXCEÇÃO: Especialmente "Cobertor", "Toalhas de Piscina" e "Protetores".
+2. CANETA ESCURA VS CLARA: Se a célula tiver um número forte/escuro ao lado de um rabisco claro, use o ESCURO. Se tiver APENAS caneta azul clara, LEIA O NÚMERO CLARO. Nunca coloque 0 se houver tinta.
+3. O TRAÇO "Z" GIGANTE: Ignore o grande risco "Z" que corta o papel. Leia normalmente os números das últimas linhas.
+4. COLUNAS: 1ª Coluna ('Saída Cliente QTD') = "enviado". Coluna do Meio = IGNORE. 3ª Coluna ('Saída Lavanderia') = "devolvido".
 5. DATA: Extraia a data no topo ou rodapé (DD/MM/AAAA).
 
 Responda APENAS com o JSON:
@@ -305,12 +283,7 @@ Responda APENAS com o JSON:
                 body: JSON.stringify({
                     model: "meta-llama/llama-4-scout-17b-16e-instruct",
                     response_format: { type: "json_object" },
-                    messages: [
-                        { role: "user", content: [
-                            { type: "text", text: promptEspecialista },
-                            { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imagemBase64}` } }
-                        ]}
-                    ],
+                    messages: [{ role: "user", content: [{ type: "text", text: promptEspecialista }, { type: "image_url", image_url: { url: `data:image/jpeg;base64,${imagemBase64}` } }] }],
                     temperature: 0.0 
                 })
             });
@@ -321,7 +294,10 @@ Responda APENAS com o JSON:
             let textResponse = result.choices[0].message.content.replace(/```json/gi, "").replace(/```/g, "").trim();
             
             let jsonLido = JSON.parse(textResponse);
-            dadosAtuais = jsonLido.itens || jsonLido;
+            
+            // Injeta o novo campo manual na memória
+            let itensBase = jsonLido.itens || jsonLido;
+            dadosAtuais = itensBase.map(i => ({...i, devolvido_hotel: 0}));
             
             const inputData = document.getElementById('data-remessa-input');
             if (jsonLido.data_guia && jsonLido.data_guia.includes('/')) inputData.value = jsonLido.data_guia;
@@ -341,54 +317,88 @@ Responda APENAS com o JSON:
         const tfoot = document.getElementById('table-foot');
         tbody.innerHTML = ''; 
 
-        let totalSaldoHoje = 0; let totalEstoqueGeral = 0;
+        let totSaldoLav = 0, totSaldoHot = 0, totEstLav = 0, totEstHot = 0;
 
         dadosAtuais.forEach((linha, index) => {
-            const saldoHistorico = estoqueAcumulado[linha.item] || 0;
-            const saldoHoje = linha.devolvido - linha.enviado;
-            const saldoFuturo = modoLeitura ? saldoHistorico : (saldoHistorico + saldoHoje);
+            const histLav = estoqueAcumulado[linha.item] ? estoqueAcumulado[linha.item].lavanderia : 0;
+            const histHot = estoqueAcumulado[linha.item] ? estoqueAcumulado[linha.item].hotel : 0;
+            
+            const saldoLav = linha.devolvido - linha.enviado;
+            const saldoHot = linha.devolvido_hotel - linha.enviado;
+            
+            const futLav = histLav + saldoLav;
+            const futHot = histHot + saldoHot;
 
-            totalSaldoHoje += saldoHoje; totalEstoqueGeral += saldoFuturo;
+            totSaldoLav += saldoLav; totSaldoHot += saldoHot;
+            totEstLav += futLav; totEstHot += futHot;
 
             const tr = document.createElement('tr');
             if(modoLeitura) {
-                tr.innerHTML = `<td>${linha.item}</td><td><b>${linha.enviado}</b></td><td><b>${linha.devolvido}</b></td><td><span class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHoje)}</span></td><td class="acumulado-col"><span class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoFuturo)}</span></td>`;
+                tr.innerHTML = `
+                    <td style="border-right: 1px solid #e2e8f0;">${linha.item}</td>
+                    <td style="border-right: 1px solid #e2e8f0;"><b>${linha.enviado}</b></td>
+                    <td><b>${linha.devolvido}</b></td>
+                    <td class="col-hotel-bg"><b>${linha.devolvido_hotel}</b></td>
+                    <td><span class="status-badge ${saldoLav < 0 ? 'negative' : (saldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoLav)}</span></td>
+                    <td class="col-hotel-bg"><span class="status-badge ${saldoHot < 0 ? 'negative' : (saldoHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHot)}</span></td>
+                    <td class="acumulado-col"><span class="status-badge ${futLav < 0 ? 'negative' : (futLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(futLav)}</span></td>
+                    <td class="acumulado-hotel-col"><span class="status-badge ${futHot < 0 ? 'negative' : (futHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(futHot)}</span></td>
+                `;
             } else {
                 tr.innerHTML = `
-                    <td>${linha.item}</td>
-                    <td><input type="number" value="${linha.enviado}" min="0" oninput="atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td>
+                    <td style="border-right: 1px solid #e2e8f0;">${linha.item}</td>
+                    <td style="border-right: 1px solid #e2e8f0;"><input type="number" value="${linha.enviado}" min="0" oninput="atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td>
                     <td><input type="number" value="${linha.devolvido}" min="0" oninput="atualizarValor(${index}, 'devolvido', this.value)" onfocus="this.select()"></td>
-                    <td><span id="saldo-${index}" class="status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHoje)}</span></td>
-                    <td class="acumulado-col"><span id="acumulado-${index}" class="status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoFuturo)}</span></td>
+                    <td class="col-hotel-bg"><input type="number" value="" placeholder="0" class="col-hotel-input" min="0" oninput="atualizarValor(${index}, 'devolvido_hotel', this.value)" onfocus="this.select()"></td>
+                    <td><span id="slav-${index}" class="status-badge ${saldoLav < 0 ? 'negative' : (saldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoLav)}</span></td>
+                    <td class="col-hotel-bg"><span id="shot-${index}" class="status-badge ${saldoHot < 0 ? 'negative' : (saldoHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHot)}</span></td>
+                    <td class="acumulado-col"><span id="elav-${index}" class="status-badge ${futLav < 0 ? 'negative' : (futLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(futLav)}</span></td>
+                    <td class="acumulado-hotel-col"><span id="ehot-${index}" class="status-badge ${futHot < 0 ? 'negative' : (futHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(futHot)}</span></td>
                 `;
             }
             tbody.appendChild(tr);
         });
 
-        tfoot.innerHTML = `<tr><td colspan="3">TOTAL GERAL:</td><td><span id="total-saldo" class="status-badge ${totalSaldoHoje < 0 ? 'negative' : (totalSaldoHoje > 0 ? 'positive' : 'neutral')}">${formatarNumero(totalSaldoHoje)}</span></td><td class="acumulado-col"><span id="total-estoque" class="status-badge ${totalEstoqueGeral < 0 ? 'negative' : (totalEstoqueGeral > 0 ? 'positive' : 'neutral')}">${formatarNumero(totalEstoqueGeral)}</span></td></tr>`;
+        tfoot.innerHTML = `
+            <tr>
+                <td colspan="2" style="border-right: 1px solid #94a3b8;">TOTAIS:</td>
+                <td colspan="2"></td>
+                <td><span id="tslav" class="status-badge ${totSaldoLav < 0 ? 'negative' : (totSaldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(totSaldoLav)}</span></td>
+                <td class="col-hotel-bg"><span id="tshot" class="status-badge ${totSaldoHot < 0 ? 'negative' : (totSaldoHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(totSaldoHot)}</span></td>
+                <td class="acumulado-col"><span id="telav" class="status-badge ${totEstLav < 0 ? 'negative' : (totEstLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(totEstLav)}</span></td>
+                <td class="acumulado-hotel-col"><span id="tehot" class="status-badge ${totEstHot < 0 ? 'negative' : (totEstHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(totEstHot)}</span></td>
+            </tr>`;
     }
 
     function atualizarValor(index, campo, novoValor) {
         dadosAtuais[index][campo] = novoValor === "" ? 0 : parseInt(novoValor);
-        const saldoHoje = dadosAtuais[index].devolvido - dadosAtuais[index].enviado;
-        const saldoFuturo = (estoqueAcumulado[dadosAtuais[index].item] || 0) + saldoHoje;
+        
+        const saldoLav = dadosAtuais[index].devolvido - dadosAtuais[index].enviado;
+        const saldoHot = dadosAtuais[index].devolvido_hotel - dadosAtuais[index].enviado;
+        
+        const futLav = (estoqueAcumulado[dadosAtuais[index].item] ? estoqueAcumulado[dadosAtuais[index].item].lavanderia : 0) + saldoLav;
+        const futHot = (estoqueAcumulado[dadosAtuais[index].item] ? estoqueAcumulado[dadosAtuais[index].item].hotel : 0) + saldoHot;
 
-        document.getElementById(`saldo-${index}`).textContent = formatarNumero(saldoHoje);
-        document.getElementById(`saldo-${index}`).className = `status-badge ${saldoHoje < 0 ? 'negative' : (saldoHoje > 0 ? 'positive' : 'neutral')}`;
-        document.getElementById(`acumulado-${index}`).textContent = formatarNumero(saldoFuturo);
-        document.getElementById(`acumulado-${index}`).className = `status-badge ${saldoFuturo < 0 ? 'negative' : (saldoFuturo > 0 ? 'positive' : 'neutral')}`;
+        document.getElementById(`slav-${index}`).textContent = formatarNumero(saldoLav); document.getElementById(`slav-${index}`).className = `status-badge ${saldoLav < 0 ? 'negative' : (saldoLav > 0 ? 'positive' : 'neutral')}`;
+        document.getElementById(`shot-${index}`).textContent = formatarNumero(saldoHot); document.getElementById(`shot-${index}`).className = `status-badge ${saldoHot < 0 ? 'negative' : (saldoHot > 0 ? 'positive' : 'neutral')}`;
+        document.getElementById(`elav-${index}`).textContent = formatarNumero(futLav); document.getElementById(`elav-${index}`).className = `status-badge ${futLav < 0 ? 'negative' : (futLav > 0 ? 'positive' : 'neutral')}`;
+        document.getElementById(`ehot-${index}`).textContent = formatarNumero(futHot); document.getElementById(`ehot-${index}`).className = `status-badge ${futHot < 0 ? 'negative' : (futHot > 0 ? 'positive' : 'neutral')}`;
 
-        let novoTSaldo = 0; let novoTEstoque = 0;
-        dadosAtuais.forEach(linha => { let sH = linha.devolvido - linha.enviado; novoTSaldo += sH; novoTEstoque += (estoqueAcumulado[linha.item] || 0) + sH; });
+        let tslav = 0, tshot = 0, telav = 0, tehot = 0;
+        dadosAtuais.forEach(linha => { 
+            let sl = linha.devolvido - linha.enviado; let sh = linha.devolvido_hotel - linha.enviado;
+            tslav += sl; tshot += sh; 
+            telav += (estoqueAcumulado[linha.item] ? estoqueAcumulado[linha.item].lavanderia : 0) + sl; 
+            tehot += (estoqueAcumulado[linha.item] ? estoqueAcumulado[linha.item].hotel : 0) + sh; 
+        });
 
-        document.getElementById('total-saldo').textContent = formatarNumero(novoTSaldo);
-        document.getElementById('total-saldo').className = `status-badge ${novoTSaldo < 0 ? 'negative' : (novoTSaldo > 0 ? 'positive' : 'neutral')}`;
-        document.getElementById('total-estoque').textContent = formatarNumero(novoTEstoque);
-        document.getElementById('total-estoque').className = `status-badge ${novoTEstoque < 0 ? 'negative' : (novoTEstoque > 0 ? 'positive' : 'neutral')}`;
+        document.getElementById('tslav').textContent = formatarNumero(tslav); document.getElementById('tslav').className = `status-badge ${tslav < 0 ? 'negative' : (tslav > 0 ? 'positive' : 'neutral')}`;
+        document.getElementById('tshot').textContent = formatarNumero(tshot); document.getElementById('tshot').className = `status-badge ${tshot < 0 ? 'negative' : (tshot > 0 ? 'positive' : 'neutral')}`;
+        document.getElementById('telav').textContent = formatarNumero(telav); document.getElementById('telav').className = `status-badge ${telav < 0 ? 'negative' : (telav > 0 ? 'positive' : 'neutral')}`;
+        document.getElementById('tehot').textContent = formatarNumero(tehot); document.getElementById('tehot').className = `status-badge ${tehot < 0 ? 'negative' : (tehot > 0 ? 'positive' : 'neutral')}`;
     }
 
     function formatarNumero(num) { return num > 0 ? "+" + num : (num === 0 ? "OK" : num); }
-
     function limparDados() { location.reload(); }
 
     async function salvarEstoqueNaNuvem() {
@@ -400,9 +410,11 @@ Responda APENAS com o JSON:
         btnSave.textContent = "⏳ Salvando no Banco..."; btnSave.disabled = true;
 
         dadosAtuais.forEach(linha => {
-            const saldoHoje = linha.devolvido - linha.enviado;
-            if (estoqueAcumulado[linha.item] === undefined) estoqueAcumulado[linha.item] = 0;
-            estoqueAcumulado[linha.item] += saldoHoje;
+            const saldoLav = linha.devolvido - linha.enviado;
+            const saldoHot = linha.devolvido_hotel - linha.enviado;
+            if (!estoqueAcumulado[linha.item]) estoqueAcumulado[linha.item] = { lavanderia: 0, hotel: 0 };
+            estoqueAcumulado[linha.item].lavanderia += saldoLav;
+            estoqueAcumulado[linha.item].hotel += saldoHot;
         });
 
         try {
@@ -433,12 +445,7 @@ Responda APENAS com o JSON:
             
             let docs = [];
             snapshot.forEach(doc => docs.push({id: doc.id, ...doc.data()}));
-
-            docs.sort((a, b) => {
-                let timeA = a.dataRegistro ? a.dataRegistro.toMillis() : 0;
-                let timeB = b.dataRegistro ? b.dataRegistro.toMillis() : 0;
-                return timeB - timeA;
-            });
+            docs.sort((a, b) => { let timeA = a.dataRegistro ? a.dataRegistro.toMillis() : 0; let timeB = b.dataRegistro ? b.dataRegistro.toMillis() : 0; return timeB - timeA; });
 
             let html = '';
             docs.slice(0, 30).forEach(data => {
@@ -457,40 +464,48 @@ Responda APENAS com o JSON:
                         </div>
                         <div style="display:flex; align-items:center; gap: 15px;">
                             <span onclick="document.getElementById('det-${data.id}').style.display = document.getElementById('det-${data.id}').style.display === 'none' ? 'block' : 'none'" style="font-size: 12px; color: var(--primary); font-weight: bold; cursor: pointer;">VER ▼</span>
-                            <button class="btn-apagar-historico" onclick="deletarRelatorioDoBanco('${data.id}')" title="Apagar este relatório e estornar estoque">🗑️</button>
+                            <button class="btn-apagar-historico" onclick="deletarRelatorioDoBanco('${data.id}')" title="Apagar e estornar estoque">🗑️</button>
                         </div>
                     </div>
-                    <div id="det-${data.id}" style="display: none; padding: 15px; overflow-x: auto; border-top: 1px solid #cbd5e1;">
-                        <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <div id="det-${data.id}" style="display: none; padding: 10px; overflow-x: auto; border-top: 1px solid #cbd5e1;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 12px; min-width: 500px;">
                             <thead>
                                 <tr style="background-color: #f1f5f9;">
-                                    <th style="padding:8px; text-align:left; border-bottom:1px solid #cbd5e1;">Item</th>
-                                    <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Foi</th>
-                                    <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Voltou</th>
-                                    <th style="padding:8px; border-bottom:1px solid #cbd5e1;">Saldo</th>
+                                    <th style="padding:6px; text-align:left; border-bottom:1px solid #cbd5e1;">Item</th>
+                                    <th style="padding:6px; border-bottom:1px solid #cbd5e1;">Foi</th>
+                                    <th style="padding:6px; border-bottom:1px solid #cbd5e1;">Voltou(Lav)</th>
+                                    <th style="padding:6px; border-bottom:1px solid #cbd5e1; background-color: #fefce8;">Voltou(Hot)</th>
+                                    <th style="padding:6px; border-bottom:1px solid #cbd5e1;">Saldo(Lav)</th>
+                                    <th style="padding:6px; border-bottom:1px solid #cbd5e1; background-color: #fefce8;">Saldo(Hot)</th>
                                 </tr>
                             </thead>
                             <tbody>`;
-                let tSaldo = 0;
+                let tslav = 0, tshot = 0;
                 if(data.itens && Array.isArray(data.itens)) {
                     data.itens.forEach(item => {
-                        let saldo = item.devolvido - item.enviado;
-                        tSaldo += saldo;
-                        let cor = saldo < 0 ? 'var(--danger)' : (saldo > 0 ? 'var(--success)' : 'var(--text-light)');
-                        let sinal = saldo > 0 ? '+' : '';
+                        let slav = item.devolvido - item.enviado;
+                        let shot = (item.devolvido_hotel || 0) - item.enviado;
+                        tslav += slav; tshot += shot;
+                        let corL = slav < 0 ? 'var(--danger)' : (slav > 0 ? 'var(--success)' : 'var(--text-light)');
+                        let corH = shot < 0 ? 'var(--danger)' : (shot > 0 ? 'var(--success)' : 'var(--text-light)');
+                        
                         html += `<tr>
-                                    <td style="padding: 8px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600;">${item.item}</td>
-                                    <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${item.enviado}</td>
-                                    <td style="padding: 8px; border-bottom: 1px solid #e2e8f0;">${item.devolvido}</td>
-                                    <td style="padding: 8px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: ${cor};">${sinal}${saldo}</td>
+                                    <td style="padding: 6px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600;">${item.item}</td>
+                                    <td style="padding: 6px; border-bottom: 1px solid #e2e8f0;">${item.enviado}</td>
+                                    <td style="padding: 6px; border-bottom: 1px solid #e2e8f0;">${item.devolvido}</td>
+                                    <td style="padding: 6px; border-bottom: 1px solid #e2e8f0; background-color: #fefce8;">${item.devolvido_hotel || 0}</td>
+                                    <td style="padding: 6px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: ${corL};">${slav > 0 ? '+':''}${slav}</td>
+                                    <td style="padding: 6px; border-bottom: 1px solid #e2e8f0; font-weight: bold; color: ${corH}; background-color: #fefce8;">${shot > 0 ? '+':''}${shot}</td>
                                  </tr>`;
                     });
                 }
-                let corT = tSaldo < 0 ? 'var(--danger)' : (tSaldo > 0 ? 'var(--success)' : 'var(--text-light)');
-                let sinalT = tSaldo > 0 ? '+' : '';
                 html += `   </tbody>
                             <tfoot>
-                                <tr><td colspan="3" style="text-align:right; padding:10px; font-weight:bold;">BALANÇO DESTE DIA:</td><td style="padding:10px; font-weight:bold; color:${corT};">${sinalT}${tSaldo}</td></tr>
+                                <tr>
+                                    <td colspan="4" style="text-align:right; padding:8px; font-weight:bold;">BALANÇOS DO DIA:</td>
+                                    <td style="padding:8px; font-weight:bold; color:${tslav < 0 ? 'var(--danger)' : 'var(--success)'};">${tslav > 0 ? '+':''}${tslav}</td>
+                                    <td style="padding:8px; font-weight:bold; background-color: #fefce8; color:${tshot < 0 ? 'var(--danger)' : 'var(--success)'};">${tshot > 0 ? '+':''}${tshot}</td>
+                                </tr>
                             </tfoot>
                         </table>
                     </div>
@@ -501,7 +516,7 @@ Responda APENAS com o JSON:
     }
 
     async function deletarRelatorioDoBanco(idDaNota) {
-        if(confirm("ATENÇÃO: Deseja apagar esta nota? Os números dessa nota serão ESTORNADOS do Estoque Geral para manter os cálculos corretos.")) {
+        if(confirm("ATENÇÃO: Deseja apagar esta nota? Os números dessa nota serão ESTORNADOS dos dois Estoques Gerais (Lavanderia e Hotel).")) {
             try {
                 const docNota = await db.collection("historico_remessas").doc(idDaNota).get();
                 if(docNota.exists) {
@@ -511,9 +526,11 @@ Responda APENAS com o JSON:
 
                     if(dadosNota.itens) {
                         dadosNota.itens.forEach(item => {
-                            const saldoDestaNota = item.devolvido - item.enviado;
+                            const saldoLav = item.devolvido - item.enviado;
+                            const saldoHot = (item.devolvido_hotel || 0) - item.enviado;
                             if(estoqueAtual[item.item] !== undefined) {
-                                estoqueAtual[item.item] -= saldoDestaNota; 
+                                estoqueAtual[item.item].lavanderia -= saldoLav; 
+                                estoqueAtual[item.item].hotel -= saldoHot; 
                             }
                         });
                         await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAtual);
@@ -540,6 +557,7 @@ Responda APENAS com o JSON:
         const avisoAmarelo = area.querySelector('div[style*="background-color: #fffbeb"]');
         if (avisoAmarelo) avisoAmarelo.style.display = 'none';
         
+        // Esconde colunas que quebram o PDF no celular temporariamente se quiser, mas vamos deixar completo
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             area.style.border = ""; area.style.boxShadow = ""; area.style.padding = "24px"; area.style.backgroundColor = "var(--card-bg)";
             if (avisoAmarelo) avisoAmarelo.style.display = 'block';
@@ -547,7 +565,7 @@ Responda APENAS com o JSON:
             canvas.toBlob(async function(blob) {
                 const file = new File([blob], `Relatorio_HIT_${new Date().getTime()}.jpg`, { type: 'image/jpeg' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try { await navigator.share({ title: 'Relatório Hit Hotel', text: 'Segue o relatório de enxoval.', files: [file] }); } 
+                    try { await navigator.share({ title: 'Relatório Hit Hotel', text: 'Segue a auditoria de enxoval dupla.', files: [file] }); } 
                     catch (error) { console.log('Compartilhamento cancelado'); }
                 } else { alert("Use o botão azul de Baixar Relatório."); }
                 btnShare.innerHTML = originalText; btnShare.disabled = false;
