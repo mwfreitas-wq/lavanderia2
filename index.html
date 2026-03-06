@@ -18,7 +18,6 @@
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 25px 15px; text-align: center; background-color: #f8fafc; transition: 0.3s; display: flex; flex-direction: column; gap: 15px; align-items: center; }
         input[type="file"] { display: none; }
         
-        /* Botões */
         .btn-group { display: flex; flex-direction: column; gap: 10px; align-items: center; margin-top: 15px; }
         .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 24px; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; width: 100%; max-width: 400px; color: white; transition: 0.2s;}
         .btn-primary { background-color: var(--primary); }
@@ -33,6 +32,7 @@
         .info-panel div { display: flex; flex-direction: column; flex: 1; min-width: 100px; }
         .info-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
         .input-header { width: 100%; max-width: 120px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; font-weight: bold; color: var(--dark); text-align: center; }
+        .input-header:disabled { border: none !important; background-color: transparent !important; padding: 0 !important; font-size: 16px; }
         
         .preview-container { text-align: center; margin-bottom: 15px; background-color: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; position: relative; }
         .preview-img { max-width: 100%; height: 200px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: contain; cursor: zoom-in; transition: 0.3s; }
@@ -41,7 +41,6 @@
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); overflow: auto; align-items: center; justify-content: center; padding-top: 20px; }
         .modal-content { margin: auto; display: block; max-width: 95%; max-height: 90vh; object-fit: contain; border-radius: 8px; }
         
-        /* Ajustes Tabela */
         table { width: 100%; border-collapse: collapse; min-width: 800px; } 
         th, td { padding: 10px 4px; text-align: center; border-bottom: 1px solid #e2e8f0; font-size: 13px;}
         th { background-color: #f8fafc; color: var(--text-light); font-size: 11px; text-transform: uppercase; line-height: 1.2;}
@@ -72,11 +71,13 @@
         
         .historico-card { border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;}
         .historico-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 8px; transition: 0.2s; }
-        .btn-apagar-historico { background: transparent; border: none; font-size: 20px; cursor: pointer; padding: 5px; border-radius: 50%; transition: 0.2s; }
+        .historico-header:hover { background: #f1f5f9; }
+        .btn-apagar-historico, .btn-editar-historico { background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 5px; border-radius: 50%; transition: 0.2s; }
+        .btn-apagar-historico:hover { background: #fee2e2; }
+        .btn-editar-historico:hover { background: #e0f2fe; }
         
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #e2e8f0; }
         
-        /* Botão de Adicionar Linha */
         .btn-add-linha { background-color: #f1f5f9; border: 2px dashed #94a3b8; color: #475569; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; width: 100%; margin-top: 15px; transition: 0.2s; }
         .btn-add-linha:hover { background-color: #e2e8f0; color: #1e293b; border-color: #64748b; }
     </style>
@@ -101,7 +102,7 @@
 <div class="container">
     <div class="card" id="upload-card">
         <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Com Adição Manual de Itens</p>
+        <p class="subtitle">Com Edição de Histórico (Reabertura)</p>
         
         <div class="upload-area">
             <label for="file-upload" class="btn btn-primary" style="margin: 0;">📸 Capturar Nova Guia</label>
@@ -121,14 +122,14 @@
             <div><span class="info-label">Conferente</span><input type="text" id="nome-conferente" class="input-header" placeholder="Seu Nome"></div>
         </div>
 
-        <div class="preview-container">
+        <div class="preview-container" id="container-imagem">
             <span class="info-label" style="display:block; margin-bottom:8px;">Imagem Escaneada da Guia</span>
             <img id="imagem-guia-relatorio" class="preview-img" src="" alt="Guia de Lavanderia" onclick="abrirZoom()">
             <span class="zoom-hint" onclick="abrirZoom()">🔍 Clique na foto para AUMENTAR</span>
         </div>
 
-        <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;">
-            ⚠️ <strong>Modo de Revisão:</strong> Preencha a coluna amarela <b>"Voltou (Hotel)"</b>. Se a IA pular algum item, clique no botão "Adicionar Item" abaixo da tabela.
+        <div style="background-color: #fffbeb; color: #b45309; padding: 10px; border-radius: 6px; font-size: 13px; text-align: center; margin-bottom: 15px;" id="aviso-revisao">
+            ⚠️ <strong>Modo de Revisão:</strong> Preencha a coluna amarela <b>"Voltou (Hotel)"</b>. 
         </div>
 
         <div class="table-responsive">
@@ -207,6 +208,7 @@
             document.getElementById('file-name').textContent = "Arquivo: " + file.name;
             document.getElementById('process-btn').disabled = true;
             document.getElementById('debug-log').style.display = 'none';
+            document.getElementById('container-imagem').style.display = 'block'; // Mostra container se for envio novo
             
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -233,13 +235,7 @@
         }
     }
 
-    async function processarComIA() {
-        if (!imagemBase64) { alert("A imagem ainda não carregou."); return; }
-        
-        document.getElementById('process-btn').style.display = 'none';
-        document.getElementById('loading').style.display = 'block';
-        document.getElementById('debug-log').style.display = 'none';
-
+    async function carregarEstoqueAtual() {
         try {
             const docRef = await db.collection("estoque_hoteis").doc("hit_hotel").get();
             if (docRef.exists) {
@@ -253,14 +249,24 @@
                 }
             }
         } catch (error) { console.warn("Firebase não acessado, iniciando estoque zerado."); }
+    }
+
+    async function processarComIA() {
+        if (!imagemBase64) { alert("A imagem ainda não carregou."); return; }
+        
+        document.getElementById('process-btn').style.display = 'none';
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('debug-log').style.display = 'none';
+
+        await carregarEstoqueAtual();
 
         const promptEspecialista = `Você é um auditor especialista em extração de romaneios preenchidos à mão.
         
 REGRAS ABSOLUTAS:
 1. LEIA TODAS AS LINHAS SEM EXCEÇÃO: Especialmente "Cobertor", "Toalhas de Piscina" e "Protetores".
-2. CANETA ESCURA VS CLARA: Se a célula tiver um número forte/escuro ao lado de um rabisco claro, use o ESCURO. Se tiver APENAS caneta azul clara, LEIA O NÚMERO CLARO. Nunca coloque 0 se houver tinta.
-3. O TRAÇO "Z" GIGANTE: Ignore o grande risco "Z" que corta o papel. Leia normalmente os números das últimas linhas.
-4. COLUNAS: 1ª Coluna ('Saída Cliente QTD') = "enviado". Coluna do Meio = IGNORE. 3ª Coluna ('Saída Lavanderia') = "devolvido".
+2. CANETA ESCURA VS CLARA: Se a célula tiver um número forte/escuro ao lado de um rabisco claro, use o ESCURO. Se tiver APENAS caneta azul clara, LEIA O NÚMERO CLARO.
+3. O TRAÇO "Z" GIGANTE: Ignore o grande risco "Z" que corta o papel.
+4. COLUNAS: 1ª Coluna = "enviado". Coluna do Meio = IGNORE. 3ª Coluna = "devolvido".
 5. DATA: Extraia a data no topo ou rodapé (DD/MM/AAAA).
 
 Responda APENAS com o JSON:
@@ -305,44 +311,26 @@ Responda APENAS com o JSON:
             let itensBase = jsonLido.itens || jsonLido;
             dadosAtuais = itensBase.map(i => ({...i, devolvido_hotel: 0}));
             
-            const inputData = document.getElementById('data-remessa-input');
-            if (jsonLido.data_guia && jsonLido.data_guia.includes('/')) inputData.value = jsonLido.data_guia;
-            else inputData.value = new Date().toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: '2-digit'});
+            document.getElementById('data-remessa-input').value = (jsonLido.data_guia && jsonLido.data_guia.includes('/')) ? jsonLido.data_guia : new Date().toLocaleDateString('pt-BR', {day: '2-digit', month: '2-digit', year: '2-digit'});
 
             renderizarTabela(false);
             
             document.getElementById('upload-card').style.display = 'none';
             document.getElementById('area-relatorio').style.display = 'block';
             document.getElementById('action-buttons').style.display = 'flex'; 
-            document.getElementById('btn-add-linha').style.display = 'block'; // Mostra botão de add linha
+            document.getElementById('btn-add-linha').style.display = 'block'; 
 
         } catch (error) { mostrarErro("A comunicação com a Inteligência falhou.", error.message); }
     }
 
-    // NOVA FUNÇÃO: ADICIONAR ITEM MANUALMENTE
     function adicionarLinhaManual() {
-        const nomeItem = prompt("Qual o nome do item que faltou na tabela? (Ex: Toalha de Piso Extra)");
-        
+        const nomeItem = prompt("Qual o nome do item que faltou na tabela?");
         if (nomeItem && nomeItem.trim() !== "") {
-            // Checa se já existe para não ficar confuso
             const existe = dadosAtuais.find(i => i.item.toLowerCase() === nomeItem.trim().toLowerCase());
-            if (existe) {
-                alert("Este item já está na tabela. Você pode editar os números diretamente nela!");
-                return;
-            }
+            if (existe) { alert("Este item já está na tabela. Edite os números diretamente nela!"); return; }
 
-            // Insere no final do array de dados
-            dadosAtuais.push({
-                item: nomeItem.trim(),
-                enviado: 0,
-                devolvido: 0,
-                devolvido_hotel: 0
-            });
-
-            // Recarrega a tabela para a linha aparecer
+            dadosAtuais.push({ item: nomeItem.trim(), enviado: 0, devolvido: 0, devolvido_hotel: 0 });
             renderizarTabela(false);
-            
-            // Dá um scroll leve até o fim da tabela
             document.getElementById('btn-add-linha').scrollIntoView({ behavior: 'smooth' });
         }
     }
@@ -438,9 +426,10 @@ Responda APENAS com o JSON:
     function limparDados() { location.reload(); }
 
     async function salvarEstoqueNaNuvem() {
-        const conferente = document.getElementById('nome-conferente').value;
-        const dataInput = document.getElementById('data-remessa-input').value;
-        if(conferente.trim() === "") { alert("Preencha o Nome do Conferente antes de salvar."); return; }
+        const conferenteInput = document.getElementById('nome-conferente');
+        const dataInput = document.getElementById('data-remessa-input');
+        
+        if(conferenteInput.value.trim() === "") { alert("Preencha o Nome do Conferente antes de salvar."); return; }
 
         const btnSave = document.getElementById('save-btn');
         btnSave.textContent = "⏳ Salvando no Banco..."; btnSave.disabled = true;
@@ -455,13 +444,20 @@ Responda APENAS com o JSON:
 
         try {
             await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAcumulado);
-            await db.collection("historico_remessas").add({ hotel: "Hit Hotel", dataRemessa: dataInput, conferente: conferente, dataRegistro: firebase.firestore.FieldValue.serverTimestamp(), itens: dadosAtuais });
+            await db.collection("historico_remessas").add({ 
+                hotel: "Hit Hotel", 
+                dataRemessa: dataInput.value, 
+                conferente: conferenteInput.value, 
+                dataRegistro: firebase.firestore.FieldValue.serverTimestamp(), 
+                itens: dadosAtuais 
+            });
 
-            document.getElementById('data-remessa-input').parentElement.innerHTML = `<span class="info-label">Data</span><span class="info-value">${dataInput}</span>`;
-            document.getElementById('nome-conferente').parentElement.innerHTML = `<span class="info-label">Conferente</span><span class="info-value">${conferente}</span>`;
+            // Trava os campos do cabeçalho de forma visual (sem destruir os inputs)
+            dataInput.disabled = true; dataInput.style.border = "none"; dataInput.style.backgroundColor = "transparent"; dataInput.style.padding = "0";
+            conferenteInput.disabled = true; conferenteInput.style.border = "none"; conferenteInput.style.backgroundColor = "transparent"; conferenteInput.style.padding = "0";
 
             btnSave.style.display = 'none'; 
-            document.getElementById('btn-add-linha').style.display = 'none'; // Esconde botão de adicionar linha após salvar
+            document.getElementById('btn-add-linha').style.display = 'none';
             renderizarTabela(true); 
             
             document.getElementById('new-report-btn').style.display = 'inline-flex';
@@ -499,9 +495,10 @@ Responda APENAS com o JSON:
                             <div style="font-weight: bold; font-size: 15px; color: var(--dark);">📅 Guia: ${data.dataRemessa || 'N/A'}</div>
                             <div style="font-size: 12px; color: var(--text-light);">Salvo: ${dataHoraStr} | Por: ${data.conferente || 'N/A'}</div>
                         </div>
-                        <div style="display:flex; align-items:center; gap: 15px;">
-                            <span onclick="document.getElementById('det-${data.id}').style.display = document.getElementById('det-${data.id}').style.display === 'none' ? 'block' : 'none'" style="font-size: 12px; color: var(--primary); font-weight: bold; cursor: pointer;">VER ▼</span>
-                            <button class="btn-apagar-historico" onclick="deletarRelatorioDoBanco('${data.id}')" title="Apagar e estornar estoque">🗑️</button>
+                        <div style="display:flex; align-items:center; gap: 5px;">
+                            <span onclick="document.getElementById('det-${data.id}').style.display = document.getElementById('det-${data.id}').style.display === 'none' ? 'block' : 'none'" style="font-size: 12px; color: var(--primary); font-weight: bold; cursor: pointer; margin-right: 10px;">VER ▼</span>
+                            <button class="btn-editar-historico" onclick="editarRelatorioDoBanco('${data.id}')" title="Reabrir esta nota para editar os números">✏️</button>
+                            <button class="btn-apagar-historico" onclick="deletarRelatorioDoBanco('${data.id}')" title="Apagar esta nota e estornar estoque">🗑️</button>
                         </div>
                     </div>
                     <div id="det-${data.id}" style="display: none; padding: 10px; overflow-x: auto; border-top: 1px solid #cbd5e1;">
@@ -552,25 +549,90 @@ Responda APENAS com o JSON:
         } catch(error) { divLista.innerHTML = '<p style="color:red; text-align:center;">Erro ao buscar histórico.</p>'; }
     }
 
+    // A MÁGICA DA EDIÇÃO: ESTORNA, APAGA O VELHO E REABRE NA TELA
+    async function editarRelatorioDoBanco(idDaNota) {
+        if(confirm("Deseja corrigir esta nota? \nEla será reaberta na tela principal para edição, e o estoque geral será recalculado automaticamente.")) {
+            try {
+                const docNota = await db.collection("historico_remessas").doc(idDaNota).get();
+                if(!docNota.exists) { alert("Relatório não encontrado."); return; }
+                const dadosNota = docNota.data();
+
+                // 1. Puxa estoque para Estorno
+                await carregarEstoqueAtual();
+
+                // 2. Faz o Estorno (Subtrai os valores da nota velha)
+                if(dadosNota.itens) {
+                    dadosNota.itens.forEach(item => {
+                        const saldoLav = item.devolvido - item.enviado;
+                        const saldoHot = (item.devolvido_hotel || 0) - item.enviado;
+                        if(estoqueAcumulado[item.item] !== undefined) {
+                            estoqueAcumulado[item.item].lavanderia -= saldoLav; 
+                            estoqueAcumulado[item.item].hotel -= saldoHot; 
+                        }
+                    });
+                    await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAcumulado);
+                }
+
+                // 3. Deleta do Histórico
+                await db.collection("historico_remessas").doc(idDaNota).delete();
+
+                // 4. Joga os dados da nota velha de volta pra tela
+                dadosAtuais = dadosNota.itens || [];
+                
+                const inputData = document.getElementById('data-remessa-input');
+                const inputConf = document.getElementById('nome-conferente');
+                
+                inputData.disabled = false; inputData.style.border = "1px solid #cbd5e1"; inputData.style.backgroundColor = "#fff"; inputData.style.padding = "6px";
+                inputData.value = dadosNota.dataRemessa || '';
+                
+                inputConf.disabled = false; inputConf.style.border = "1px solid #cbd5e1"; inputConf.style.backgroundColor = "#fff"; inputConf.style.padding = "6px";
+                inputConf.value = dadosNota.conferente || '';
+
+                // Oculta a imagem (pois não salvamos a foto no banco por limite de espaço)
+                document.getElementById('container-imagem').style.display = 'none';
+
+                // Fecha o modal e configura a tela principal
+                fecharHistorico();
+                document.getElementById('upload-card').style.display = 'none';
+                document.getElementById('area-relatorio').style.display = 'block';
+                document.getElementById('action-buttons').style.display = 'flex';
+                document.getElementById('btn-add-linha').style.display = 'block';
+                
+                const btnSave = document.getElementById('save-btn');
+                btnSave.style.display = 'inline-flex';
+                btnSave.disabled = false;
+                btnSave.textContent = "☁️ Confirmar Edição e Salvar";
+                
+                document.getElementById('new-report-btn').style.display = 'none';
+                document.getElementById('share-btn').style.display = 'none';
+
+                renderizarTabela(false);
+
+            } catch(error) {
+                console.error(error);
+                alert("Erro ao tentar abrir a nota para edição.");
+            }
+        }
+    }
+
     async function deletarRelatorioDoBanco(idDaNota) {
         if(confirm("ATENÇÃO: Deseja apagar esta nota? Os números dessa nota serão ESTORNADOS dos dois Estoques Gerais (Lavanderia e Hotel).")) {
             try {
                 const docNota = await db.collection("historico_remessas").doc(idDaNota).get();
                 if(docNota.exists) {
                     const dadosNota = docNota.data();
-                    const docEstoque = await db.collection("estoque_hoteis").doc("hit_hotel").get();
-                    let estoqueAtual = docEstoque.exists ? docEstoque.data() : {};
+                    await carregarEstoqueAtual();
 
                     if(dadosNota.itens) {
                         dadosNota.itens.forEach(item => {
                             const saldoLav = item.devolvido - item.enviado;
                             const saldoHot = (item.devolvido_hotel || 0) - item.enviado;
-                            if(estoqueAtual[item.item] !== undefined) {
-                                estoqueAtual[item.item].lavanderia -= saldoLav; 
-                                estoqueAtual[item.item].hotel -= saldoHot; 
+                            if(estoqueAcumulado[item.item] !== undefined) {
+                                estoqueAcumulado[item.item].lavanderia -= saldoLav; 
+                                estoqueAcumulado[item.item].hotel -= saldoHot; 
                             }
                         });
-                        await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAtual);
+                        await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAcumulado);
                     }
                 }
                 await db.collection("historico_remessas").doc(idDaNota).delete();
@@ -592,8 +654,7 @@ Responda APENAS com o JSON:
         const area = document.getElementById('area-relatorio');
         area.style.border = "none"; area.style.boxShadow = "none"; area.style.padding = "30px"; area.style.backgroundColor = "#ffffff";
         
-        // Esconde botão de add linha e caixas de aviso para o print ficar limpo
-        const avisoAmarelo = area.querySelector('div[style*="background-color: #fffbeb"]');
+        const avisoAmarelo = area.querySelector('#aviso-revisao');
         const btnAdd = document.getElementById('btn-add-linha');
         if (avisoAmarelo) avisoAmarelo.style.display = 'none';
         if (btnAdd) btnAdd.style.display = 'none';
@@ -618,7 +679,7 @@ Responda APENAS com o JSON:
         const area = document.getElementById('area-relatorio');
         area.style.border = "none"; area.style.boxShadow = "none"; area.style.padding = "30px"; area.style.backgroundColor = "#ffffff";
         
-        const avisoAmarelo = area.querySelector('div[style*="background-color: #fffbeb"]');
+        const avisoAmarelo = area.querySelector('#aviso-revisao');
         const btnAdd = document.getElementById('btn-add-linha');
         if (avisoAmarelo) avisoAmarelo.style.display = 'none';
         if (btnAdd) btnAdd.style.display = 'none';
