@@ -170,7 +170,10 @@
 </div>
 
 <script>
-    const GROQ_API_KEY = "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";
+    // === CHAVE ATUALIZADA ===
+    const GROQ_API_KEY = "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"; 
+    // ========================
+
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
         authDomain: "lavanderia-hoteis.firebaseapp.com",
@@ -208,7 +211,7 @@
             document.getElementById('file-name').textContent = "Arquivo: " + file.name;
             document.getElementById('process-btn').disabled = true;
             document.getElementById('debug-log').style.display = 'none';
-            document.getElementById('container-imagem').style.display = 'block'; // Mostra container se for envio novo
+            document.getElementById('container-imagem').style.display = 'block'; 
             
             const reader = new FileReader();
             reader.onload = function(event) {
@@ -301,7 +304,10 @@ Responda APENAS com o JSON:
                 })
             });
 
-            if (!response.ok) throw new Error("Erro da Groq: " + response.status);
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(`Erro da Groq: ${response.status} - ${JSON.stringify(errData)}`);
+            }
 
             const result = await response.json();
             let textResponse = result.choices[0].message.content.replace(/```json/gi, "").replace(/```/g, "").trim();
@@ -452,7 +458,6 @@ Responda APENAS com o JSON:
                 itens: dadosAtuais 
             });
 
-            // Trava os campos do cabeçalho de forma visual (sem destruir os inputs)
             dataInput.disabled = true; dataInput.style.border = "none"; dataInput.style.backgroundColor = "transparent"; dataInput.style.padding = "0";
             conferenteInput.disabled = true; conferenteInput.style.border = "none"; conferenteInput.style.backgroundColor = "transparent"; conferenteInput.style.padding = "0";
 
@@ -549,7 +554,6 @@ Responda APENAS com o JSON:
         } catch(error) { divLista.innerHTML = '<p style="color:red; text-align:center;">Erro ao buscar histórico.</p>'; }
     }
 
-    // A MÁGICA DA EDIÇÃO: ESTORNA, APAGA O VELHO E REABRE NA TELA
     async function editarRelatorioDoBanco(idDaNota) {
         if(confirm("Deseja corrigir esta nota? \nEla será reaberta na tela principal para edição, e o estoque geral será recalculado automaticamente.")) {
             try {
@@ -557,10 +561,8 @@ Responda APENAS com o JSON:
                 if(!docNota.exists) { alert("Relatório não encontrado."); return; }
                 const dadosNota = docNota.data();
 
-                // 1. Puxa estoque para Estorno
                 await carregarEstoqueAtual();
 
-                // 2. Faz o Estorno (Subtrai os valores da nota velha)
                 if(dadosNota.itens) {
                     dadosNota.itens.forEach(item => {
                         const saldoLav = item.devolvido - item.enviado;
@@ -573,10 +575,8 @@ Responda APENAS com o JSON:
                     await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAcumulado);
                 }
 
-                // 3. Deleta do Histórico
                 await db.collection("historico_remessas").doc(idDaNota).delete();
 
-                // 4. Joga os dados da nota velha de volta pra tela
                 dadosAtuais = dadosNota.itens || [];
                 
                 const inputData = document.getElementById('data-remessa-input');
@@ -588,10 +588,8 @@ Responda APENAS com o JSON:
                 inputConf.disabled = false; inputConf.style.border = "1px solid #cbd5e1"; inputConf.style.backgroundColor = "#fff"; inputConf.style.padding = "6px";
                 inputConf.value = dadosNota.conferente || '';
 
-                // Oculta a imagem (pois não salvamos a foto no banco por limite de espaço)
                 document.getElementById('container-imagem').style.display = 'none';
 
-                // Fecha o modal e configura a tela principal
                 fecharHistorico();
                 document.getElementById('upload-card').style.display = 'none';
                 document.getElementById('area-relatorio').style.display = 'block';
