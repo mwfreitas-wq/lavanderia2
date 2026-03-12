@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Lavanderia IA</title>
+    <title>Controle de Lavanderia - Hit Hotel</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
 
     <style>
-        :root { --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --share: #8b5cf6; --dark: #1e293b; --text-main: #334155; --text-light: #64748b; --bg-color: #f1f5f9; --card-bg: #ffffff; }
+        :root { --primary: #3b82f6; --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --share: #8b5cf6; --report: #ec4899; --dark: #1e293b; --text-main: #334155; --text-light: #64748b; --bg-color: #f1f5f9; --card-bg: #ffffff; }
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px 10px; }
         .container { max-width: 1000px; margin: auto; }
         .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
@@ -26,8 +26,12 @@
         .btn-danger { background-color: var(--danger); }
         .btn-share { background-color: var(--share); }
         .btn-history { background-color: #475569; }
+        .btn-report { background-color: var(--report); }
         .btn:disabled { background-color: #cbd5e1; cursor: not-allowed; }
         
+        .botoes-secundarios { display: flex; gap: 10px; width: 100%; max-width: 400px; }
+        .botoes-secundarios .btn { flex: 1; padding: 12px 10px; font-size: 13px; }
+
         .info-panel { display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; align-items: center; background-color: #f8fafc; border-left: 4px solid var(--primary); padding: 12px; border-radius: 0 8px 8px 0; margin-bottom: 15px; }
         .info-panel div { display: flex; flex-direction: column; flex: 1; min-width: 100px; }
         .info-label { font-size: 11px; color: var(--text-light); text-transform: uppercase; font-weight: bold; margin-bottom: 4px; }
@@ -37,8 +41,7 @@
         /* Seletor de Hotel */
         .hotel-selector-container { width: 100%; max-width: 400px; margin: 0 auto 15px auto; text-align: left; }
         .hotel-select { width: 100%; padding: 12px 15px; border-radius: 8px; border: 2px solid var(--primary); font-size: 16px; font-weight: bold; color: var(--dark); background-color: #fff; cursor: pointer; outline: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 15px center; background-size: 20px; }
-        .hotel-select:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
-
+        
         .preview-container { text-align: center; margin-bottom: 15px; background-color: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; position: relative; }
         .preview-img { max-width: 100%; height: 200px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: contain; cursor: zoom-in; transition: 0.3s; }
         .zoom-hint { font-size: 12px; color: var(--primary); font-weight: bold; margin-top: 5px; display: block; cursor: pointer; }
@@ -76,15 +79,21 @@
         
         .historico-card { border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;}
         .historico-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 8px; transition: 0.2s; }
-        .historico-header:hover { background: #f1f5f9; }
         .btn-apagar-historico, .btn-editar-historico { background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 5px; border-radius: 50%; transition: 0.2s; }
-        .btn-apagar-historico:hover { background: #fee2e2; }
-        .btn-editar-historico:hover { background: #e0f2fe; }
         
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #e2e8f0; }
-        
         .btn-add-linha { background-color: #f1f5f9; border: 2px dashed #94a3b8; color: #475569; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; width: 100%; margin-top: 15px; transition: 0.2s; }
-        .btn-add-linha:hover { background-color: #e2e8f0; color: #1e293b; border-color: #64748b; }
+        
+        /* Estilos do Dashboard Analítico */
+        .dash-card-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
+        .dash-card { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .dash-val { font-size: 24px; font-weight: bold; color: var(--dark); margin: 5px 0; }
+        .dash-title { font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: bold; }
+        .bloco-relatorio { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 15px; }
+        .bloco-titulo { font-size: 15px; font-weight: bold; color: var(--dark); margin-bottom: 10px; border-bottom: 2px solid #f1f5f9; padding-bottom: 5px; display: flex; align-items: center; gap: 8px; }
+        .lista-piores { list-style: none; padding: 0; margin: 0; }
+        .lista-piores li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+        .lista-piores li:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
@@ -94,20 +103,30 @@
     <img class="modal-content" id="img-zoomed">
 </div>
 
-<div id="historico-modal" class="modal" style="background-color: rgba(0,0,0,0.85); padding-top: 0; display: none;" onclick="fecharHistoricoBackground(event)">
+<div id="historico-modal" class="modal" style="background-color: rgba(0,0,0,0.85); padding-top: 0; display: none;" onclick="fecharModalBackground(event, 'historico-modal')">
     <div class="modal-content" style="background-color: var(--bg-color); padding: 20px; width: 95%; max-width: 900px; height: 85vh; display: flex; flex-direction: column; position: relative; margin-top: 5vh;" onclick="event.stopPropagation();">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
             <h2 id="titulo-historico" style="color: var(--dark); margin: 0; font-size: 20px;">📅 Histórico</h2>
-            <button onclick="fecharHistorico()" style="background-color: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">❌ Fechar</button>
+            <button onclick="document.getElementById('historico-modal').style.display='none'" style="background-color: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">❌ Fechar</button>
         </div>
         <div id="lista-historico" style="overflow-y: auto; flex: 1; padding-right: 5px;"></div>
+    </div>
+</div>
+
+<div id="dashboard-modal" class="modal" style="background-color: rgba(0,0,0,0.85); padding-top: 0; display: none;" onclick="fecharModalBackground(event, 'dashboard-modal')">
+    <div class="modal-content" style="background-color: var(--bg-color); padding: 20px; width: 95%; max-width: 900px; height: 85vh; display: flex; flex-direction: column; position: relative; margin-top: 5vh;" onclick="event.stopPropagation();">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
+            <h2 id="titulo-dashboard" style="color: var(--dark); margin: 0; font-size: 20px;">📊 Dashboard Analítico</h2>
+            <button onclick="document.getElementById('dashboard-modal').style.display='none'" style="background-color: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">❌ Fechar</button>
+        </div>
+        <div id="conteudo-dashboard" style="overflow-y: auto; flex: 1; padding-right: 5px;"></div>
     </div>
 </div>
 
 <div class="container">
     <div class="card" id="upload-card">
         <h1 id="titulo-app">Controle de Enxoval IA - Hit Hotel</h1>
-        <p class="subtitle">Multi-Hotel Integrado</p>
+        <p class="subtitle">Com Painel Analítico de Perdas</p>
         
         <div class="upload-area">
             <div class="hotel-selector-container">
@@ -121,7 +140,12 @@
 
             <label for="file-upload" class="btn btn-primary" style="margin: 0;">📸 Capturar Nova Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
-            <button class="btn btn-history" onclick="abrirHistorico()" style="margin: 0;">📅 Consultar Histórico Salvo</button>
+            
+            <div class="botoes-secundarios">
+                <button class="btn btn-history" onclick="abrirHistorico()">📅 Histórico</button>
+                <button class="btn btn-report" onclick="abrirDashboard()">📊 Relatórios</button>
+            </div>
+
             <div id="file-name" style="color: var(--text-light); font-size: 14px; margin-top: 10px;">Nenhuma imagem anexada</div>
             <button id="process-btn" class="btn btn-warning" onclick="processarComIA()" disabled style="margin: 0;">✨ Analisar Foto Rápido</button>
             <p id="loading" style="color: var(--warning); font-weight: bold; display: none;">A IA está processando... Aguarde!</p>
@@ -198,7 +222,6 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     
-    // Variáveis Globais de Hotel
     let hotelIdAtual = "hit_hotel";
     let hotelNomeAtual = "Hit Hotel";
 
@@ -207,29 +230,21 @@
     let imagemBase64 = "";
     let imagemCompletaComCabecalho = "";
 
-    // FUNÇÃO DE TROCA DE HOTEL
     function mudarHotel() {
         const sel = document.getElementById('hotel-selector');
         hotelIdAtual = sel.value;
         hotelNomeAtual = sel.options[sel.selectedIndex].text;
-        
-        // Atualiza a tela
         document.getElementById('titulo-app').textContent = `Controle de Enxoval IA - ${hotelNomeAtual}`;
         document.getElementById('nome-cliente-relatorio').textContent = hotelNomeAtual;
-        
-        // Limpa a memória de estoque do hotel anterior para não misturar
         estoqueAcumulado = {};
     }
 
     function abrirZoom() { document.getElementById('image-modal').style.display = "flex"; document.getElementById('img-zoomed').src = imagemCompletaComCabecalho; }
     function fecharZoom() { document.getElementById('image-modal').style.display = "none"; }
-    function abrirHistorico() { 
-        document.getElementById('historico-modal').style.display = "flex"; 
-        document.getElementById('titulo-historico').textContent = `📅 Histórico - ${hotelNomeAtual}`;
-        carregarHistorico(); 
+    
+    function fecharModalBackground(event, modalId) { 
+        if (event.target.id === modalId) { document.getElementById(modalId).style.display = "none"; }
     }
-    function fecharHistorico() { document.getElementById('historico-modal').style.display = "none"; }
-    function fecharHistoricoBackground(event) { if (event.target.id === 'historico-modal') fecharHistorico(); }
 
     function mostrarErro(mensagem, erroTecnico = "") {
         const debugBox = document.getElementById('debug-log');
@@ -274,21 +289,15 @@
 
     async function carregarEstoqueAtual() {
         try {
-            // Busca o estoque da coleção do hotel atualmente selecionado
             const docRef = await db.collection("estoque_hoteis").doc(hotelIdAtual).get();
             if (docRef.exists) {
                 const dadosBanco = docRef.data();
                 for (let k in dadosBanco) {
-                    if (typeof dadosBanco[k] === 'number') {
-                        estoqueAcumulado[k] = { lavanderia: dadosBanco[k], hotel: dadosBanco[k] };
-                    } else {
-                        estoqueAcumulado[k] = dadosBanco[k];
-                    }
+                    if (typeof dadosBanco[k] === 'number') estoqueAcumulado[k] = { lavanderia: dadosBanco[k], hotel: dadosBanco[k] };
+                    else estoqueAcumulado[k] = dadosBanco[k];
                 }
-            } else {
-                estoqueAcumulado = {}; // Zera caso seja a primeira vez deste hotel
-            }
-        } catch (error) { console.warn("Firebase não acessado, iniciando estoque zerado."); }
+            } else { estoqueAcumulado = {}; }
+        } catch (error) { console.warn("Firebase não acessado."); }
     }
 
     async function processarComIA() {
@@ -341,10 +350,7 @@ Responda APENAS com o JSON:
                 })
             });
 
-            if (!response.ok) {
-                const errData = await response.json();
-                throw new Error(`Erro da Groq: ${response.status} - ${JSON.stringify(errData)}`);
-            }
+            if (!response.ok) throw new Error(`Erro da Groq: ${response.status}`);
 
             const result = await response.json();
             let textResponse = result.choices[0].message.content.replace(/```json/gi, "").replace(/```/g, "").trim();
@@ -358,9 +364,7 @@ Responda APENAS com o JSON:
 
             renderizarTabela(false);
             
-            // Trava o seletor de hotel para não ser mudado no meio da operação
             document.getElementById('hotel-selector').disabled = true;
-
             document.getElementById('upload-card').style.display = 'none';
             document.getElementById('area-relatorio').style.display = 'block';
             document.getElementById('action-buttons').style.display = 'flex'; 
@@ -419,7 +423,6 @@ Responda APENAS com o JSON:
                     <td style="border-right: 1px solid #e2e8f0;"><input type="number" value="${linha.enviado}" min="0" oninput="atualizarValor(${index}, 'enviado', this.value)" onfocus="this.select()"></td>
                     <td><input type="number" value="${linha.devolvido}" min="0" oninput="atualizarValor(${index}, 'devolvido', this.value)" onfocus="this.select()"></td>
                     <td class="col-hotel-bg"><input type="number" value="${linha.devolvido_hotel || ''}" placeholder="0" class="col-hotel-input" min="0" oninput="atualizarValor(${index}, 'devolvido_hotel', this.value)" onfocus="this.select()"></td>
-                    
                     <td class="divisor-secao"><span id="slav-${index}" class="status-badge ${saldoLav < 0 ? 'negative' : (saldoLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoLav)}</span></td>
                     <td class="col-hotel-bg"><span id="shot-${index}" class="status-badge ${saldoHot < 0 ? 'negative' : (saldoHot > 0 ? 'positive' : 'neutral')}">${formatarNumero(saldoHot)}</span></td>
                     <td class="acumulado-col divisor-secao"><span id="elav-${index}" class="status-badge ${futLav < 0 ? 'negative' : (futLav > 0 ? 'positive' : 'neutral')}">${formatarNumero(futLav)}</span></td>
@@ -474,11 +477,10 @@ Responda APENAS com o JSON:
     async function salvarEstoqueNaNuvem() {
         const conferenteInput = document.getElementById('nome-conferente');
         const dataInput = document.getElementById('data-remessa-input');
-        
         if(conferenteInput.value.trim() === "") { alert("Preencha o Nome do Conferente antes de salvar."); return; }
 
         const btnSave = document.getElementById('save-btn');
-        btnSave.textContent = "⏳ Salvando no Banco..."; btnSave.disabled = true;
+        btnSave.textContent = "⏳ Salvando..."; btnSave.disabled = true;
 
         dadosAtuais.forEach(linha => {
             const saldoLav = linha.devolvido - linha.enviado;
@@ -490,14 +492,9 @@ Responda APENAS com o JSON:
 
         try {
             await db.collection("estoque_hoteis").doc(hotelIdAtual).set(estoqueAcumulado);
-            
-            // Salva a nota no banco marcando QUAL hotel ela pertence
             await db.collection("historico_remessas").add({ 
-                hotel: hotelNomeAtual, 
-                dataRemessa: dataInput.value, 
-                conferente: conferenteInput.value, 
-                dataRegistro: firebase.firestore.FieldValue.serverTimestamp(), 
-                itens: dadosAtuais 
+                hotel: hotelNomeAtual, dataRemessa: dataInput.value, conferente: conferenteInput.value, 
+                dataRegistro: firebase.firestore.FieldValue.serverTimestamp(), itens: dadosAtuais 
             });
 
             dataInput.disabled = true; dataInput.style.border = "none"; dataInput.style.backgroundColor = "transparent"; dataInput.style.padding = "0";
@@ -506,25 +503,17 @@ Responda APENAS com o JSON:
             btnSave.style.display = 'none'; 
             document.getElementById('btn-add-linha').style.display = 'none';
             renderizarTabela(true); 
-            
             document.getElementById('new-report-btn').style.display = 'inline-flex';
             document.getElementById('share-btn').style.display = 'inline-flex';
-        } catch (error) {
-            alert("Erro ao salvar no banco de dados.");
-            btnSave.textContent = "☁️ Confirmar e Salvar no Banco"; btnSave.disabled = false;
-        }
+        } catch (error) { alert("Erro ao salvar."); btnSave.textContent = "☁️ Salvar"; btnSave.disabled = false; }
     }
 
     async function carregarHistorico() {
         const divLista = document.getElementById('lista-historico');
         divLista.innerHTML = `<p style="text-align:center; color: #64748b; padding: 20px;">Buscando notas do ${hotelNomeAtual}...</p>`;
-        
         try {
-            // Busca apenas o histórico do hotel selecionado!
             const snapshot = await db.collection("historico_remessas").where("hotel", "==", hotelNomeAtual).get();
-            
-            if(snapshot.empty) { divLista.innerHTML = '<p style="text-align:center;">Nenhum relatório encontrado para este hotel.</p>'; return; }
-            
+            if(snapshot.empty) { divLista.innerHTML = '<p style="text-align:center;">Nenhum relatório encontrado.</p>'; return; }
             let docs = [];
             snapshot.forEach(doc => docs.push({id: doc.id, ...doc.data()}));
             docs.sort((a, b) => { let timeA = a.dataRegistro ? a.dataRegistro.toMillis() : 0; let timeB = b.dataRegistro ? b.dataRegistro.toMillis() : 0; return timeB - timeA; });
@@ -536,7 +525,6 @@ Responda APENAS com o JSON:
                     let d = data.dataRegistro.toDate();
                     dataHoraStr = d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'});
                 }
-
                 html += `
                 <div class="historico-card">
                     <div class="historico-header">
@@ -546,8 +534,8 @@ Responda APENAS com o JSON:
                         </div>
                         <div style="display:flex; align-items:center; gap: 5px;">
                             <span onclick="document.getElementById('det-${data.id}').style.display = document.getElementById('det-${data.id}').style.display === 'none' ? 'block' : 'none'" style="font-size: 12px; color: var(--primary); font-weight: bold; cursor: pointer; margin-right: 10px;">VER ▼</span>
-                            <button class="btn-editar-historico" onclick="editarRelatorioDoBanco('${data.id}')" title="Reabrir esta nota para editar os números">✏️</button>
-                            <button class="btn-apagar-historico" onclick="deletarRelatorioDoBanco('${data.id}')" title="Apagar esta nota e estornar estoque">🗑️</button>
+                            <button class="btn-editar-historico" onclick="editarRelatorioDoBanco('${data.id}')" title="Editar">✏️</button>
+                            <button class="btn-apagar-historico" onclick="deletarRelatorioDoBanco('${data.id}')" title="Apagar">🗑️</button>
                         </div>
                     </div>
                     <div id="det-${data.id}" style="display: none; padding: 10px; overflow-x: auto; border-top: 1px solid #cbd5e1;">
@@ -571,7 +559,6 @@ Responda APENAS com o JSON:
                         tslav += slav; tshot += shot;
                         let corL = slav < 0 ? 'var(--danger)' : (slav > 0 ? 'var(--success)' : 'var(--text-light)');
                         let corH = shot < 0 ? 'var(--danger)' : (shot > 0 ? 'var(--success)' : 'var(--text-light)');
-                        
                         html += `<tr>
                                     <td style="padding: 6px; text-align: left; border-bottom: 1px solid #e2e8f0; font-weight: 600;">${item.item}</td>
                                     <td style="padding: 6px; border-bottom: 1px solid #e2e8f0;">${item.enviado}</td>
@@ -583,28 +570,20 @@ Responda APENAS com o JSON:
                     });
                 }
                 html += `   </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="4" style="text-align:right; padding:8px; font-weight:bold;">BALANÇOS DO DIA:</td>
-                                    <td style="padding:8px; font-weight:bold; color:${tslav < 0 ? 'var(--danger)' : 'var(--success)'}; border-left: 2px solid #94a3b8;">${tslav > 0 ? '+':''}${tslav}</td>
-                                    <td style="padding:8px; font-weight:bold; background-color: #fefce8; color:${tshot < 0 ? 'var(--danger)' : 'var(--success)'};">${tshot > 0 ? '+':''}${tshot}</td>
-                                </tr>
-                            </tfoot>
+                            <tfoot><tr><td colspan="4" style="text-align:right; padding:8px; font-weight:bold;">BALANÇOS DO DIA:</td><td style="padding:8px; font-weight:bold; color:${tslav < 0 ? 'var(--danger)' : 'var(--success)'}; border-left: 2px solid #94a3b8;">${tslav > 0 ? '+':''}${tslav}</td><td style="padding:8px; font-weight:bold; background-color: #fefce8; color:${tshot < 0 ? 'var(--danger)' : 'var(--success)'};">${tshot > 0 ? '+':''}${tshot}</td></tr></tfoot>
                         </table>
-                    </div>
-                </div>`;
+                    </div></div>`;
             });
             divLista.innerHTML = html;
         } catch(error) { divLista.innerHTML = '<p style="color:red; text-align:center;">Erro ao buscar histórico.</p>'; }
     }
 
     async function editarRelatorioDoBanco(idDaNota) {
-        if(confirm("Deseja corrigir esta nota? \nEla será reaberta na tela principal para edição, e o estoque geral será recalculado automaticamente.")) {
+        if(confirm("Deseja corrigir esta nota?")) {
             try {
                 const docNota = await db.collection("historico_remessas").doc(idDaNota).get();
-                if(!docNota.exists) { alert("Relatório não encontrado."); return; }
+                if(!docNota.exists) return;
                 const dadosNota = docNota.data();
-
                 await carregarEstoqueAtual();
 
                 if(dadosNota.itens) {
@@ -618,57 +597,39 @@ Responda APENAS com o JSON:
                     });
                     await db.collection("estoque_hoteis").doc(hotelIdAtual).set(estoqueAcumulado);
                 }
-
                 await db.collection("historico_remessas").doc(idDaNota).delete();
 
                 dadosAtuais = dadosNota.itens || [];
-                
                 const inputData = document.getElementById('data-remessa-input');
                 const inputConf = document.getElementById('nome-conferente');
-                
                 inputData.disabled = false; inputData.style.border = "1px solid #cbd5e1"; inputData.style.backgroundColor = "#fff"; inputData.style.padding = "6px";
                 inputData.value = dadosNota.dataRemessa || '';
-                
                 inputConf.disabled = false; inputConf.style.border = "1px solid #cbd5e1"; inputConf.style.backgroundColor = "#fff"; inputConf.style.padding = "6px";
                 inputConf.value = dadosNota.conferente || '';
 
                 document.getElementById('container-imagem').style.display = 'none';
-
-                fecharHistorico();
-                
-                // Trava o seletor para evitar mudança no meio da edição
+                document.getElementById('historico-modal').style.display = "none"; 
                 document.getElementById('hotel-selector').disabled = true;
-
                 document.getElementById('upload-card').style.display = 'none';
                 document.getElementById('area-relatorio').style.display = 'block';
                 document.getElementById('action-buttons').style.display = 'flex';
                 document.getElementById('btn-add-linha').style.display = 'block';
                 
                 const btnSave = document.getElementById('save-btn');
-                btnSave.style.display = 'inline-flex';
-                btnSave.disabled = false;
-                btnSave.textContent = "☁️ Confirmar Edição e Salvar";
-                
-                document.getElementById('new-report-btn').style.display = 'none';
-                document.getElementById('share-btn').style.display = 'none';
-
+                btnSave.style.display = 'inline-flex'; btnSave.disabled = false; btnSave.textContent = "☁️ Confirmar Edição e Salvar";
+                document.getElementById('new-report-btn').style.display = 'none'; document.getElementById('share-btn').style.display = 'none';
                 renderizarTabela(false);
-
-            } catch(error) {
-                console.error(error);
-                alert("Erro ao tentar abrir a nota para edição.");
-            }
+            } catch(error) { alert("Erro ao tentar abrir."); }
         }
     }
 
     async function deletarRelatorioDoBanco(idDaNota) {
-        if(confirm("ATENÇÃO: Deseja apagar esta nota? Os números dessa nota serão ESTORNADOS dos dois Estoques Gerais (Lavanderia e Hotel).")) {
+        if(confirm("Deseja apagar esta nota? O estoque será estornado.")) {
             try {
                 const docNota = await db.collection("historico_remessas").doc(idDaNota).get();
                 if(docNota.exists) {
                     const dadosNota = docNota.data();
                     await carregarEstoqueAtual();
-
                     if(dadosNota.itens) {
                         dadosNota.itens.forEach(item => {
                             const saldoLav = item.devolvido - item.enviado;
@@ -682,28 +643,148 @@ Responda APENAS com o JSON:
                     }
                 }
                 await db.collection("historico_remessas").doc(idDaNota).delete();
-                alert("Nota apagada e Estoque Geral recalculado com sucesso!");
-                location.reload(); 
-            } catch(error) {
-                alert("Erro ao tentar apagar a nota.");
+                alert("Apagado!"); location.reload(); 
+            } catch(error) { alert("Erro."); }
+        }
+    }
+
+    // --------------------------------------------------------
+    // NOVO: DASHBOARD DE RELATÓRIOS (BUSINESS INTELLIGENCE)
+    // --------------------------------------------------------
+    async function abrirDashboard() {
+        document.getElementById('dashboard-modal').style.display = "flex";
+        document.getElementById('titulo-dashboard').textContent = `📊 Dashboard Analítico - ${hotelNomeAtual}`;
+        const container = document.getElementById('conteudo-dashboard');
+        container.innerHTML = '<p style="text-align:center; padding: 30px; color: #64748b;">Processando matemática de todas as notas...</p>';
+
+        try {
+            // Busca o histórico inteiro daquele hotel
+            const snapshot = await db.collection("historico_remessas").where("hotel", "==", hotelNomeAtual).get();
+            
+            if(snapshot.empty) {
+                container.innerHTML = '<p style="text-align:center; padding: 20px;">Nenhum dado encontrado para gerar relatórios deste hotel.</p>';
+                return;
             }
+
+            let totalGeralEnviado = 0;
+            let totalGeralHotel = 0;
+            let totalGeralLavanderia = 0;
+            let estatisticasPorItem = {};
+
+            // Matemática Pesada
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                if(data.itens && Array.isArray(data.itens)) {
+                    data.itens.forEach(item => {
+                        let env = item.enviado || 0;
+                        let devL = item.devolvido || 0;
+                        let devH = item.devolvido_hotel || 0;
+
+                        totalGeralEnviado += env;
+                        totalGeralLavanderia += devL;
+                        totalGeralHotel += devH;
+
+                        if(!estatisticasPorItem[item.item]) {
+                            estatisticasPorItem[item.item] = { enviado: 0, deficitHotel: 0, divergenciaLav: 0 };
+                        }
+                        
+                        estatisticasPorItem[item.item].enviado += env;
+                        // Déficit real = O que o hotel recebeu menos o que enviou
+                        estatisticasPorItem[item.item].deficitHotel += (devH - env);
+                        // Divergência de Contagem = O que a Lavanderia disse que mandou vs Hotel contou
+                        estatisticasPorItem[item.item].divergenciaLav += (devH - devL); 
+                    });
+                }
+            });
+
+            // Prepara a lista do Top 5 Piores
+            let arrayItens = Object.keys(estatisticasPorItem).map(nome => ({ nomeItem: nome, ...estatisticasPorItem[nome] }));
+            // Ordena do mais negativo para o mais positivo
+            arrayItens.sort((a, b) => a.deficitHotel - b.deficitHotel);
+
+            let listaPioresHTML = '';
+            let encontrouProblema = false;
+            
+            arrayItens.slice(0, 5).forEach(item => {
+                if(item.deficitHotel < 0) { // Só mostra se realmente sumiu peça
+                    encontrouProblema = true;
+                    listaPioresHTML += `
+                        <li>
+                            <span><b>${item.nomeItem}</b> <span style="color:#64748b;">(Foram ${item.enviado})</span></span>
+                            <span style="color: var(--danger); font-weight: bold; background: #fef2f2; padding: 2px 8px; border-radius: 12px;">${item.deficitHotel} peças perdidas</span>
+                        </li>`;
+                }
+            });
+
+            if(!encontrouProblema) {
+                listaPioresHTML = '<li style="justify-content:center; color: var(--success); font-weight:bold;">🎉 Nenhuma perda registrada até hoje!</li>';
+            }
+
+            // Calcula o Saldo Financeiro/Físico Geral
+            let saldoGeral = totalGeralHotel - totalGeralEnviado;
+            let corSaldo = saldoGeral < 0 ? 'var(--danger)' : (saldoGeral > 0 ? 'var(--success)' : 'var(--text-main)');
+            let sinalSaldo = saldoGeral > 0 ? '+' : '';
+
+            // Calcula a Divergência Lavanderia vs Hotel
+            let divergenciaTotal = totalGeralHotel - totalGeralLavanderia;
+            let txtDivergencia = divergenciaTotal === 0 ? "As contagens batem!" : (divergenciaTotal < 0 ? `Lavanderia cobrou <b>${Math.abs(divergenciaTotal)} peças a mais</b> do que o Hotel recebeu.` : `Hotel recebeu <b>${divergenciaTotal} peças a mais</b> do que a Lavanderia enviou.`);
+            let corDivergencia = divergenciaTotal === 0 ? "var(--success)" : (divergenciaTotal < 0 ? "var(--danger)" : "var(--warning)");
+
+            // Monta o HTML do Dashboard
+            container.innerHTML = `
+                <div class="dash-card-container">
+                    <div class="dash-card">
+                        <div class="dash-title">Total Enviado (Histórico)</div>
+                        <div class="dash-val">${totalGeralEnviado}</div>
+                        <div style="font-size: 11px; color: var(--text-light);">Peças despachadas</div>
+                    </div>
+                    <div class="dash-card">
+                        <div class="dash-title">Total Recebido (Hotel)</div>
+                        <div class="dash-val">${totalGeralHotel}</div>
+                        <div style="font-size: 11px; color: var(--text-light);">Peças conferidas</div>
+                    </div>
+                    <div class="dash-card" style="border: 2px solid ${corSaldo}; background: ${saldoGeral < 0 ? '#fef2f2' : '#ecfdf5'}">
+                        <div class="dash-title" style="color: ${corSaldo};">Balanço Físico Real</div>
+                        <div class="dash-val" style="color: ${corSaldo};">${sinalSaldo}${saldoGeral}</div>
+                        <div style="font-size: 11px; color: ${corSaldo};">Prejuízo / Lucro</div>
+                    </div>
+                </div>
+
+                <div class="bloco-relatorio">
+                    <div class="bloco-titulo">🕵️‍♂️ Auditoria de Contagem (Hotel vs Lavanderia)</div>
+                    <p style="font-size: 14px; margin: 0 0 10px 0; color: var(--text-main);">
+                        Total anotado pela Lavanderia: <b>${totalGeralLavanderia} peças</b>.<br>
+                        Total conferido pelo Hotel: <b>${totalGeralHotel} peças</b>.
+                    </p>
+                    <div style="background-color: ${divergenciaTotal===0 ? '#ecfdf5' : '#fef2f2'}; padding: 10px; border-radius: 6px; font-size: 13px; color: ${corDivergencia}; font-weight: bold; text-align: center;">
+                        ${txtDivergencia}
+                    </div>
+                </div>
+
+                <div class="bloco-relatorio">
+                    <div class="bloco-titulo">📉 Top 5 Peças com Maior Perda</div>
+                    <p style="font-size: 12px; color: var(--text-light); margin-top: -5px; margin-bottom: 10px;">Com base nas contagens manuais do hotel em todo o histórico.</p>
+                    <ul class="lista-piores">
+                        ${listaPioresHTML}
+                    </ul>
+                </div>
+            `;
+
+        } catch(error) {
+            container.innerHTML = '<p style="color:red; text-align:center;">Erro ao processar as estatísticas.</p>';
+            console.error(error);
         }
     }
 
     function compartilharRelatorio() {
-        fecharZoom(); 
-        const btnShare = document.getElementById('share-btn');
-        const originalText = btnShare.innerHTML;
-        btnShare.innerHTML = "⏳ Preparando Arquivo...";
-        btnShare.disabled = true;
+        fecharZoom(); const btnShare = document.getElementById('share-btn');
+        const originalText = btnShare.innerHTML; btnShare.innerHTML = "⏳ Preparando Arquivo..."; btnShare.disabled = true;
 
         const area = document.getElementById('area-relatorio');
         area.style.border = "none"; area.style.boxShadow = "none"; area.style.padding = "30px"; area.style.backgroundColor = "#ffffff";
         
-        const avisoAmarelo = area.querySelector('#aviso-revisao');
-        const btnAdd = document.getElementById('btn-add-linha');
-        if (avisoAmarelo) avisoAmarelo.style.display = 'none';
-        if (btnAdd) btnAdd.style.display = 'none';
+        const avisoAmarelo = area.querySelector('#aviso-revisao'); const btnAdd = document.getElementById('btn-add-linha');
+        if (avisoAmarelo) avisoAmarelo.style.display = 'none'; if (btnAdd) btnAdd.style.display = 'none';
         
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             area.style.border = ""; area.style.boxShadow = ""; area.style.padding = "24px"; area.style.backgroundColor = "var(--card-bg)";
@@ -712,29 +793,24 @@ Responda APENAS com o JSON:
             canvas.toBlob(async function(blob) {
                 const file = new File([blob], `Relatorio_${hotelNomeAtual.replace(/ /g, '')}_${new Date().getTime()}.jpg`, { type: 'image/jpeg' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try { await navigator.share({ title: `Relatório ${hotelNomeAtual}`, text: `Segue a auditoria de enxoval dupla de ${hotelNomeAtual}.`, files: [file] }); } 
-                    catch (error) { console.log('Compartilhamento cancelado'); }
-                } else { alert("Use o botão azul de Baixar Relatório."); }
+                    try { await navigator.share({ title: `Relatório ${hotelNomeAtual}`, text: `Auditoria dupla de ${hotelNomeAtual}.`, files: [file] }); } 
+                    catch (error) { console.log('Cancelado'); }
+                } else { alert("Use o botão de Baixar Relatório."); }
                 btnShare.innerHTML = originalText; btnShare.disabled = false;
             }, 'image/jpeg', 0.9);
         });
     }
 
     function baixarJPG() {
-        fecharZoom(); 
-        const area = document.getElementById('area-relatorio');
+        fecharZoom(); const area = document.getElementById('area-relatorio');
         area.style.border = "none"; area.style.boxShadow = "none"; area.style.padding = "30px"; area.style.backgroundColor = "#ffffff";
         
-        const avisoAmarelo = area.querySelector('#aviso-revisao');
-        const btnAdd = document.getElementById('btn-add-linha');
-        if (avisoAmarelo) avisoAmarelo.style.display = 'none';
-        if (btnAdd) btnAdd.style.display = 'none';
+        const avisoAmarelo = area.querySelector('#aviso-revisao'); const btnAdd = document.getElementById('btn-add-linha');
+        if (avisoAmarelo) avisoAmarelo.style.display = 'none'; if (btnAdd) btnAdd.style.display = 'none';
         
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
-            const link = document.createElement('a');
-            link.download = `Relatorio_${hotelNomeAtual.replace(/ /g, '')}_${new Date().getTime()}.jpg`;
-            link.href = canvas.toDataURL('image/jpeg', 0.9);
-            link.click();
+            const link = document.createElement('a'); link.download = `Relatorio_${hotelNomeAtual.replace(/ /g, '')}_${new Date().getTime()}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9); link.click();
             area.style.border = ""; area.style.boxShadow = ""; area.style.padding = "24px"; area.style.backgroundColor = "var(--card-bg)";
             if (avisoAmarelo) avisoAmarelo.style.display = 'block';
         });
