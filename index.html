@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Controle de Lavanderia - Hit Hotel</title>
+    <title>Controle de Lavanderia IA</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -13,7 +13,7 @@
         body { font-family: 'Segoe UI', system-ui, sans-serif; background-color: var(--bg-color); color: var(--text-main); margin: 0; padding: 20px 10px; }
         .container { max-width: 1000px; margin: auto; }
         .card { background-color: var(--card-bg); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); padding: 20px; margin-bottom: 20px; }
-        h1 { color: var(--dark); text-align: center; margin-top: 0; font-size: 22px; font-weight: 700; }
+        h1 { color: var(--dark); text-align: center; margin-top: 0; font-size: 22px; font-weight: 700; transition: 0.3s; }
         p.subtitle { text-align: center; color: var(--success); margin-top: -10px; margin-bottom: 20px; font-size: 13px; font-weight: bold; }
         .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 25px 15px; text-align: center; background-color: #f8fafc; transition: 0.3s; display: flex; flex-direction: column; gap: 15px; align-items: center; }
         input[type="file"] { display: none; }
@@ -34,6 +34,11 @@
         .input-header { width: 100%; max-width: 120px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; font-weight: bold; color: var(--dark); text-align: center; }
         .input-header:disabled { border: none !important; background-color: transparent !important; padding: 0 !important; font-size: 16px; }
         
+        /* Seletor de Hotel */
+        .hotel-selector-container { width: 100%; max-width: 400px; margin: 0 auto 15px auto; text-align: left; }
+        .hotel-select { width: 100%; padding: 12px 15px; border-radius: 8px; border: 2px solid var(--primary); font-size: 16px; font-weight: bold; color: var(--dark); background-color: #fff; cursor: pointer; outline: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 15px center; background-size: 20px; }
+        .hotel-select:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2); }
+
         .preview-container { text-align: center; margin-bottom: 15px; background-color: #f8fafc; padding: 10px; border-radius: 8px; border: 1px dashed #cbd5e1; position: relative; }
         .preview-img { max-width: 100%; height: 200px; border-radius: 6px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); object-fit: contain; cursor: zoom-in; transition: 0.3s; }
         .zoom-hint { font-size: 12px; color: var(--primary); font-weight: bold; margin-top: 5px; display: block; cursor: pointer; }
@@ -92,7 +97,7 @@
 <div id="historico-modal" class="modal" style="background-color: rgba(0,0,0,0.85); padding-top: 0; display: none;" onclick="fecharHistoricoBackground(event)">
     <div class="modal-content" style="background-color: var(--bg-color); padding: 20px; width: 95%; max-width: 900px; height: 85vh; display: flex; flex-direction: column; position: relative; margin-top: 5vh;" onclick="event.stopPropagation();">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #cbd5e1; padding-bottom: 10px; margin-bottom: 15px;">
-            <h2 style="color: var(--dark); margin: 0; font-size: 20px;">📅 Histórico de Relatórios</h2>
+            <h2 id="titulo-historico" style="color: var(--dark); margin: 0; font-size: 20px;">📅 Histórico</h2>
             <button onclick="fecharHistorico()" style="background-color: var(--danger); color: white; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">❌ Fechar</button>
         </div>
         <div id="lista-historico" style="overflow-y: auto; flex: 1; padding-right: 5px;"></div>
@@ -101,10 +106,19 @@
 
 <div class="container">
     <div class="card" id="upload-card">
-        <h1>Controle de Enxoval IA - HIT</h1>
-        <p class="subtitle">Com Edição de Histórico (Reabertura)</p>
+        <h1 id="titulo-app">Controle de Enxoval IA - Hit Hotel</h1>
+        <p class="subtitle">Multi-Hotel Integrado</p>
         
         <div class="upload-area">
+            <div class="hotel-selector-container">
+                <label class="info-label" style="display:block; margin-bottom:8px;">🏨 Selecione a Unidade:</label>
+                <select id="hotel-selector" class="hotel-select" onchange="mudarHotel()">
+                    <option value="hit_hotel">Hit Hotel</option>
+                    <option value="porto_salvador">Porto Salvador</option>
+                    <option value="porto_ancoras">Porto das Âncoras</option>
+                </select>
+            </div>
+
             <label for="file-upload" class="btn btn-primary" style="margin: 0;">📸 Capturar Nova Guia</label>
             <input id="file-upload" type="file" accept="image/*" capture="environment" onchange="previewFile()" />
             <button class="btn btn-history" onclick="abrirHistorico()" style="margin: 0;">📅 Consultar Histórico Salvo</button>
@@ -117,7 +131,7 @@
 
     <div id="area-relatorio" class="card">
         <div class="info-panel" id="cabecalho-relatorio">
-            <div><span class="info-label">Cliente</span><span class="info-value" style="font-size: 16px; font-weight: bold;">HIT - Hotel</span></div>
+            <div><span class="info-label">Cliente</span><span id="nome-cliente-relatorio" class="info-value" style="font-size: 16px; font-weight: bold;">Hit Hotel</span></div>
             <div><span class="info-label">Data</span><input type="text" id="data-remessa-input" class="input-header" placeholder="00/00/00"></div>
             <div><span class="info-label">Conferente</span><input type="text" id="nome-conferente" class="input-header" placeholder="Seu Nome"></div>
         </div>
@@ -170,9 +184,7 @@
 </div>
 
 <script>
-    // === CHAVE ATUALIZADA ===
     const GROQ_API_KEY = "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"; 
-    // ========================
 
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
@@ -186,14 +198,36 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     
+    // Variáveis Globais de Hotel
+    let hotelIdAtual = "hit_hotel";
+    let hotelNomeAtual = "Hit Hotel";
+
     let dadosAtuais = [];
     let estoqueAcumulado = {};
     let imagemBase64 = "";
     let imagemCompletaComCabecalho = "";
 
+    // FUNÇÃO DE TROCA DE HOTEL
+    function mudarHotel() {
+        const sel = document.getElementById('hotel-selector');
+        hotelIdAtual = sel.value;
+        hotelNomeAtual = sel.options[sel.selectedIndex].text;
+        
+        // Atualiza a tela
+        document.getElementById('titulo-app').textContent = `Controle de Enxoval IA - ${hotelNomeAtual}`;
+        document.getElementById('nome-cliente-relatorio').textContent = hotelNomeAtual;
+        
+        // Limpa a memória de estoque do hotel anterior para não misturar
+        estoqueAcumulado = {};
+    }
+
     function abrirZoom() { document.getElementById('image-modal').style.display = "flex"; document.getElementById('img-zoomed').src = imagemCompletaComCabecalho; }
     function fecharZoom() { document.getElementById('image-modal').style.display = "none"; }
-    function abrirHistorico() { document.getElementById('historico-modal').style.display = "flex"; carregarHistorico(); }
+    function abrirHistorico() { 
+        document.getElementById('historico-modal').style.display = "flex"; 
+        document.getElementById('titulo-historico').textContent = `📅 Histórico - ${hotelNomeAtual}`;
+        carregarHistorico(); 
+    }
     function fecharHistorico() { document.getElementById('historico-modal').style.display = "none"; }
     function fecharHistoricoBackground(event) { if (event.target.id === 'historico-modal') fecharHistorico(); }
 
@@ -240,7 +274,8 @@
 
     async function carregarEstoqueAtual() {
         try {
-            const docRef = await db.collection("estoque_hoteis").doc("hit_hotel").get();
+            // Busca o estoque da coleção do hotel atualmente selecionado
+            const docRef = await db.collection("estoque_hoteis").doc(hotelIdAtual).get();
             if (docRef.exists) {
                 const dadosBanco = docRef.data();
                 for (let k in dadosBanco) {
@@ -250,6 +285,8 @@
                         estoqueAcumulado[k] = dadosBanco[k];
                     }
                 }
+            } else {
+                estoqueAcumulado = {}; // Zera caso seja a primeira vez deste hotel
             }
         } catch (error) { console.warn("Firebase não acessado, iniciando estoque zerado."); }
     }
@@ -321,6 +358,9 @@ Responda APENAS com o JSON:
 
             renderizarTabela(false);
             
+            // Trava o seletor de hotel para não ser mudado no meio da operação
+            document.getElementById('hotel-selector').disabled = true;
+
             document.getElementById('upload-card').style.display = 'none';
             document.getElementById('area-relatorio').style.display = 'block';
             document.getElementById('action-buttons').style.display = 'flex'; 
@@ -449,9 +489,11 @@ Responda APENAS com o JSON:
         });
 
         try {
-            await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAcumulado);
+            await db.collection("estoque_hoteis").doc(hotelIdAtual).set(estoqueAcumulado);
+            
+            // Salva a nota no banco marcando QUAL hotel ela pertence
             await db.collection("historico_remessas").add({ 
-                hotel: "Hit Hotel", 
+                hotel: hotelNomeAtual, 
                 dataRemessa: dataInput.value, 
                 conferente: conferenteInput.value, 
                 dataRegistro: firebase.firestore.FieldValue.serverTimestamp(), 
@@ -475,11 +517,13 @@ Responda APENAS com o JSON:
 
     async function carregarHistorico() {
         const divLista = document.getElementById('lista-historico');
-        divLista.innerHTML = '<p style="text-align:center; color: #64748b; padding: 20px;">Buscando notas salvas...</p>';
+        divLista.innerHTML = `<p style="text-align:center; color: #64748b; padding: 20px;">Buscando notas do ${hotelNomeAtual}...</p>`;
         
         try {
-            const snapshot = await db.collection("historico_remessas").get();
-            if(snapshot.empty) { divLista.innerHTML = '<p style="text-align:center;">Nenhum relatório encontrado.</p>'; return; }
+            // Busca apenas o histórico do hotel selecionado!
+            const snapshot = await db.collection("historico_remessas").where("hotel", "==", hotelNomeAtual).get();
+            
+            if(snapshot.empty) { divLista.innerHTML = '<p style="text-align:center;">Nenhum relatório encontrado para este hotel.</p>'; return; }
             
             let docs = [];
             snapshot.forEach(doc => docs.push({id: doc.id, ...doc.data()}));
@@ -572,7 +616,7 @@ Responda APENAS com o JSON:
                             estoqueAcumulado[item.item].hotel -= saldoHot; 
                         }
                     });
-                    await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAcumulado);
+                    await db.collection("estoque_hoteis").doc(hotelIdAtual).set(estoqueAcumulado);
                 }
 
                 await db.collection("historico_remessas").doc(idDaNota).delete();
@@ -591,6 +635,10 @@ Responda APENAS com o JSON:
                 document.getElementById('container-imagem').style.display = 'none';
 
                 fecharHistorico();
+                
+                // Trava o seletor para evitar mudança no meio da edição
+                document.getElementById('hotel-selector').disabled = true;
+
                 document.getElementById('upload-card').style.display = 'none';
                 document.getElementById('area-relatorio').style.display = 'block';
                 document.getElementById('action-buttons').style.display = 'flex';
@@ -630,7 +678,7 @@ Responda APENAS com o JSON:
                                 estoqueAcumulado[item.item].hotel -= saldoHot; 
                             }
                         });
-                        await db.collection("estoque_hoteis").doc("hit_hotel").set(estoqueAcumulado);
+                        await db.collection("estoque_hoteis").doc(hotelIdAtual).set(estoqueAcumulado);
                     }
                 }
                 await db.collection("historico_remessas").doc(idDaNota).delete();
@@ -662,9 +710,9 @@ Responda APENAS com o JSON:
             if (avisoAmarelo) avisoAmarelo.style.display = 'block';
 
             canvas.toBlob(async function(blob) {
-                const file = new File([blob], `Relatorio_HIT_${new Date().getTime()}.jpg`, { type: 'image/jpeg' });
+                const file = new File([blob], `Relatorio_${hotelNomeAtual.replace(/ /g, '')}_${new Date().getTime()}.jpg`, { type: 'image/jpeg' });
                 if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                    try { await navigator.share({ title: 'Relatório Hit Hotel', text: 'Segue a auditoria de enxoval dupla.', files: [file] }); } 
+                    try { await navigator.share({ title: `Relatório ${hotelNomeAtual}`, text: `Segue a auditoria de enxoval dupla de ${hotelNomeAtual}.`, files: [file] }); } 
                     catch (error) { console.log('Compartilhamento cancelado'); }
                 } else { alert("Use o botão azul de Baixar Relatório."); }
                 btnShare.innerHTML = originalText; btnShare.disabled = false;
@@ -684,7 +732,7 @@ Responda APENAS com o JSON:
         
         html2canvas(area, { scale: 2, backgroundColor: "#ffffff" }).then(canvas => {
             const link = document.createElement('a');
-            link.download = `Relatorio_HIT_${new Date().getTime()}.jpg`;
+            link.download = `Relatorio_${hotelNomeAtual.replace(/ /g, '')}_${new Date().getTime()}.jpg`;
             link.href = canvas.toDataURL('image/jpeg', 0.9);
             link.click();
             area.style.border = ""; area.style.boxShadow = ""; area.style.padding = "24px"; area.style.backgroundColor = "var(--card-bg)";
