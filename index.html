@@ -79,10 +79,14 @@
         
         .historico-card { border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: 12px; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: relative;}
         .historico-header { padding: 15px; display: flex; justify-content: space-between; align-items: center; background: #f8fafc; border-radius: 8px; transition: 0.2s; }
+        .historico-header:hover { background: #f1f5f9; }
         .btn-apagar-historico, .btn-editar-historico { background: transparent; border: none; font-size: 18px; cursor: pointer; padding: 5px; border-radius: 50%; transition: 0.2s; }
+        .btn-apagar-historico:hover { background: #fee2e2; }
+        .btn-editar-historico:hover { background: #e0f2fe; }
         
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #e2e8f0; }
         .btn-add-linha { background-color: #f1f5f9; border: 2px dashed #94a3b8; color: #475569; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; width: 100%; margin-top: 15px; transition: 0.2s; }
+        .btn-add-linha:hover { background-color: #e2e8f0; color: #1e293b; border-color: #64748b; }
         
         /* Estilos do Dashboard Analítico */
         .dash-card-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
@@ -208,7 +212,11 @@
 </div>
 
 <script>
-    const GROQ_API_KEY = "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"; 
+    // ==========================================
+    // CHAVE DA GROQ ATUALIZADA AQUI:
+    // ==========================================
+    const GROQ_API_KEY = "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"; 
+    // ==========================================
 
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
@@ -313,8 +321,8 @@
         
 REGRAS ABSOLUTAS:
 1. LEIA TODAS AS LINHAS SEM EXCEÇÃO: Especialmente "Cobertor", "Toalhas de Piscina" e "Protetores".
-2. CANETA ESCURA VS CLARA: Se a célula tiver um número forte/escuro ao lado de um rabisco claro, use o ESCURO. Se tiver APENAS caneta azul clara, LEIA O NÚMERO CLARO.
-3. O TRAÇO "Z" GIGANTE: Ignore o grande risco "Z" que corta o papel.
+2. CANETA ESCURA VS CLARA: Se a célula tiver um número forte/escuro ao lado de um rabisco claro, use o ESCURO. Se tiver APENAS caneta azul clara, LEIA O NÚMERO CLARO. Nunca coloque 0 se houver tinta.
+3. O TRAÇO "Z" GIGANTE: Ignore o grande risco "Z" que corta o papel. Leia normalmente os números das últimas linhas.
 4. COLUNAS: 1ª Coluna = "enviado". Coluna do Meio = IGNORE. 3ª Coluna = "devolvido".
 5. DATA: Extraia a data no topo ou rodapé (DD/MM/AAAA).
 
@@ -350,7 +358,10 @@ Responda APENAS com o JSON:
                 })
             });
 
-            if (!response.ok) throw new Error(`Erro da Groq: ${response.status}`);
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(`Erro da Groq: ${response.status} - ${JSON.stringify(errData)}`);
+            }
 
             const result = await response.json();
             let textResponse = result.choices[0].message.content.replace(/```json/gi, "").replace(/```/g, "").trim();
@@ -477,6 +488,7 @@ Responda APENAS com o JSON:
     async function salvarEstoqueNaNuvem() {
         const conferenteInput = document.getElementById('nome-conferente');
         const dataInput = document.getElementById('data-remessa-input');
+        
         if(conferenteInput.value.trim() === "") { alert("Preencha o Nome do Conferente antes de salvar."); return; }
 
         const btnSave = document.getElementById('save-btn');
@@ -648,9 +660,6 @@ Responda APENAS com o JSON:
         }
     }
 
-    // --------------------------------------------------------
-    // NOVO: DASHBOARD DE RELATÓRIOS (BUSINESS INTELLIGENCE)
-    // --------------------------------------------------------
     async function abrirDashboard() {
         document.getElementById('dashboard-modal').style.display = "flex";
         document.getElementById('titulo-dashboard').textContent = `📊 Dashboard Analítico - ${hotelNomeAtual}`;
@@ -658,7 +667,6 @@ Responda APENAS com o JSON:
         container.innerHTML = '<p style="text-align:center; padding: 30px; color: #64748b;">Processando matemática de todas as notas...</p>';
 
         try {
-            // Busca o histórico inteiro daquele hotel
             const snapshot = await db.collection("historico_remessas").where("hotel", "==", hotelNomeAtual).get();
             
             if(snapshot.empty) {
@@ -671,7 +679,6 @@ Responda APENAS com o JSON:
             let totalGeralLavanderia = 0;
             let estatisticasPorItem = {};
 
-            // Matemática Pesada
             snapshot.forEach(doc => {
                 const data = doc.data();
                 if(data.itens && Array.isArray(data.itens)) {
@@ -689,24 +696,20 @@ Responda APENAS com o JSON:
                         }
                         
                         estatisticasPorItem[item.item].enviado += env;
-                        // Déficit real = O que o hotel recebeu menos o que enviou
                         estatisticasPorItem[item.item].deficitHotel += (devH - env);
-                        // Divergência de Contagem = O que a Lavanderia disse que mandou vs Hotel contou
                         estatisticasPorItem[item.item].divergenciaLav += (devH - devL); 
                     });
                 }
             });
 
-            // Prepara a lista do Top 5 Piores
             let arrayItens = Object.keys(estatisticasPorItem).map(nome => ({ nomeItem: nome, ...estatisticasPorItem[nome] }));
-            // Ordena do mais negativo para o mais positivo
             arrayItens.sort((a, b) => a.deficitHotel - b.deficitHotel);
 
             let listaPioresHTML = '';
             let encontrouProblema = false;
             
             arrayItens.slice(0, 5).forEach(item => {
-                if(item.deficitHotel < 0) { // Só mostra se realmente sumiu peça
+                if(item.deficitHotel < 0) { 
                     encontrouProblema = true;
                     listaPioresHTML += `
                         <li>
@@ -720,17 +723,14 @@ Responda APENAS com o JSON:
                 listaPioresHTML = '<li style="justify-content:center; color: var(--success); font-weight:bold;">🎉 Nenhuma perda registrada até hoje!</li>';
             }
 
-            // Calcula o Saldo Financeiro/Físico Geral
             let saldoGeral = totalGeralHotel - totalGeralEnviado;
             let corSaldo = saldoGeral < 0 ? 'var(--danger)' : (saldoGeral > 0 ? 'var(--success)' : 'var(--text-main)');
             let sinalSaldo = saldoGeral > 0 ? '+' : '';
 
-            // Calcula a Divergência Lavanderia vs Hotel
             let divergenciaTotal = totalGeralHotel - totalGeralLavanderia;
             let txtDivergencia = divergenciaTotal === 0 ? "As contagens batem!" : (divergenciaTotal < 0 ? `Lavanderia cobrou <b>${Math.abs(divergenciaTotal)} peças a mais</b> do que o Hotel recebeu.` : `Hotel recebeu <b>${divergenciaTotal} peças a mais</b> do que a Lavanderia enviou.`);
             let corDivergencia = divergenciaTotal === 0 ? "var(--success)" : (divergenciaTotal < 0 ? "var(--danger)" : "var(--warning)");
 
-            // Monta o HTML do Dashboard
             container.innerHTML = `
                 <div class="dash-card-container">
                     <div class="dash-card">
