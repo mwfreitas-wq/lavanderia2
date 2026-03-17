@@ -38,6 +38,7 @@
         .input-header { width: 100%; max-width: 120px; padding: 6px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; font-weight: bold; color: var(--dark); text-align: center; }
         .input-header:disabled { border: none !important; background-color: transparent !important; padding: 0 !important; font-size: 16px; }
         
+        /* Seletor de Hotel */
         .hotel-selector-container { width: 100%; max-width: 400px; margin: 0 auto 15px auto; text-align: left; }
         .hotel-select { width: 100%; padding: 12px 15px; border-radius: 8px; border: 2px solid var(--primary); font-size: 16px; font-weight: bold; color: var(--dark); background-color: #fff; cursor: pointer; outline: none; appearance: none; background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e"); background-repeat: no-repeat; background-position: right 15px center; background-size: 20px; }
         
@@ -85,7 +86,9 @@
         
         .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; border-radius: 8px; border: 1px solid #e2e8f0; }
         .btn-add-linha { background-color: #f1f5f9; border: 2px dashed #94a3b8; color: #475569; padding: 10px 15px; border-radius: 8px; font-weight: bold; font-size: 14px; cursor: pointer; width: 100%; margin-top: 15px; transition: 0.2s; }
+        .btn-add-linha:hover { background-color: #e2e8f0; color: #1e293b; border-color: #64748b; }
         
+        /* Estilos do Dashboard Analítico */
         .dash-card-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
         .dash-card { background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
         .dash-val { font-size: 24px; font-weight: bold; color: var(--dark); margin: 5px 0; }
@@ -209,7 +212,11 @@
 </div>
 
 <script>
-    const GROQ_API_KEY = "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"; 
+    // ==========================================
+    // CHAVE DA GROQ ATUALIZADA AQUI:
+    // ==========================================
+    const GROQ_API_KEY = "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"; 
+    // ==========================================
 
     const firebaseConfig = {
         apiKey: "AIzaSyDSzlfHpGYerhBdo-DuTlukCUTjpag9C3A",
@@ -247,7 +254,6 @@
         if (event.target.id === modalId) { document.getElementById(modalId).style.display = "none"; }
     }
 
-    // AQUI ESTÁ A FUNÇÃO QUE ABRE O HISTÓRICO!
     function abrirHistorico() {
         document.getElementById('historico-modal').style.display = "flex";
         document.getElementById('titulo-historico').textContent = `📅 Histórico - ${hotelNomeAtual}`;
@@ -358,7 +364,10 @@ Responda APENAS com o JSON:
                 })
             });
 
-            if (!response.ok) throw new Error(`Erro da Groq: ${response.status}`);
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(`Erro da Groq: ${response.status} - ${JSON.stringify(errData)}`);
+            }
 
             const result = await response.json();
             let textResponse = result.choices[0].message.content.replace(/```json/gi, "").replace(/```/g, "").trim();
@@ -485,6 +494,7 @@ Responda APENAS com o JSON:
     async function salvarEstoqueNaNuvem() {
         const conferenteInput = document.getElementById('nome-conferente');
         const dataInput = document.getElementById('data-remessa-input');
+        
         if(conferenteInput.value.trim() === "") { alert("Preencha o Nome do Conferente antes de salvar."); return; }
 
         const btnSave = document.getElementById('save-btn');
@@ -587,7 +597,7 @@ Responda APENAS com o JSON:
     }
 
     async function editarRelatorioDoBanco(idDaNota) {
-        if(confirm("Deseja corrigir esta nota?")) {
+        if(confirm("Deseja corrigir esta nota? \nEla será reaberta na tela principal para edição, e o estoque geral será recalculado automaticamente.")) {
             try {
                 const docNota = await db.collection("historico_remessas").doc(idDaNota).get();
                 if(!docNota.exists) return;
